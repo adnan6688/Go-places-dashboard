@@ -2,6 +2,8 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { useState } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 
 // Define Validation Schema
 const formSchema = z.object({
@@ -12,7 +14,12 @@ const formSchema = z.object({
   phoneNumber: z.string().min(10, "Valid phone number required"),
   county: z.string().min(1, "County is required"),
   address: z.string().min(5, "Full address is required"),
-  
+
+  // email
+  email: z.string().email("Invalid email address"),
+
+  password: z.string().min(6, "Password must be at least 6 characters"),
+
   // Section 2
   supportInstructions: z.string().optional(),
   serviceNotes: z.string().optional(),
@@ -34,7 +41,10 @@ const formSchema = z.object({
 type FormData = z.infer<typeof formSchema>;
 
 const RiderEnrollmentForm = () => {
-  const {register, handleSubmit,  watch,  formState: { errors }, } = useForm<FormData>({
+
+  const [showPassword, setShowPassword] = useState(false);
+
+  const { register, handleSubmit, watch, formState: { errors }, } = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       oneWayQty: 0,
@@ -63,12 +73,12 @@ const RiderEnrollmentForm = () => {
   return (
     <div className=" ">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        
+
         {/* SECTION 1: Rider Information */}
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
           <h2 className="text-lg font-bold text-gray-800">1. Rider Information</h2>
           <p className="text-sm text-gray-500 mb-4">Personal details of this rider</p>
-          
+
           <div className="grid grid-cols-1 gap-4">
             <div>
               <label className="text-sm font-medium">Full Name</label>
@@ -98,10 +108,50 @@ const RiderEnrollmentForm = () => {
               </div>
             </div>
 
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">Rider Email</label>
+                <input {...register("email")} placeholder="Rider Email" className={inputClass(errors.email)} />
+              </div>
+              <div className="relative">
+                <label className="text-sm font-medium">
+                  Rider Password (One Time)
+                </label>
+
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    defaultValue={"145356"}
+                    {...register("password")}
+                    placeholder="Create rider password"
+                    className={`${inputClass(errors.password)} pr-10`}
+                  />
+
+                  {/* Eye Icon */}
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                  >
+                    {showPassword ? (
+                      <EyeOff size={18} />
+                    ) : (
+                      <Eye size={18} />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+            </div>
+
             <div>
               <label className="text-sm font-medium">Address</label>
               <input {...register("address")} placeholder="Full address" className={inputClass(errors.address)} />
             </div>
+
+
+
           </div>
         </div>
 
@@ -109,7 +159,7 @@ const RiderEnrollmentForm = () => {
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
           <h2 className="text-lg font-bold text-gray-800">2. Service & Support Details</h2>
           <p className="text-sm text-gray-500 mb-4">Accessibility needs and dates</p>
-          
+
           <div className="space-y-4">
             <div>
               <label className="text-sm font-medium">Support Instructions</label>
@@ -151,7 +201,7 @@ const RiderEnrollmentForm = () => {
         {/* SECTION 4: Authorization (Calculations) */}
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
           <h2 className="text-lg font-bold text-gray-800">4. Transportation Authorization</h2>
-          
+
           <div className="mt-4 space-y-6">
             {/* One-Way Transport */}
             <div>

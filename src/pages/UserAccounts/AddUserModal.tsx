@@ -25,7 +25,7 @@ export const AddUserModal: React.FC<AddUserModalProps> = ({ onClose, mode, initi
         {/* Header: মোড অনুযায়ী টাইটেল চেঞ্জ হবে */}
         <div className="flex items-center justify-between p-6 border-b">
           <h2 className="text-xl font-bold text-gray-900">
-            {isEdit ? 'Edit User Details' : 'Add New User'}
+            {isEdit ? 'Edit Staff Details' : 'Add New Staff'}
           </h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition-colors">
             <X size={20} />
@@ -56,19 +56,7 @@ export const AddUserModal: React.FC<AddUserModalProps> = ({ onClose, mode, initi
             />
           </div>
 
-          {/* Role Selection */}
-          <div className="space-y-1.5">
-            <label className="text-sm font-bold text-gray-700">Assign Role</label>
-            <select 
-              defaultValue={initialData?.role || 'Staff'} 
-              className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none cursor-pointer font-medium"
-            >
-              <option value="Admin">Admin</option>
-              <option value="Staff">Staff</option>
-              <option value="Rider">Rider</option>
-              <option value="Driver">Driver</option>
-            </select>
-          </div>
+
 
           {/* পাসওয়ার্ড ফিল্ড সাধারণত এডিট মোডে হাইড রাখা হয় অথবা আলাদাভাবে হ্যান্ডেল করা হয় */}
           {!isEdit && (

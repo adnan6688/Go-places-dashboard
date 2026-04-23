@@ -1,4 +1,4 @@
-import { Calendar, ChevronDown, Edit2, Filter, Mail, Search, ShieldCheck, UserPlus } from 'lucide-react';
+import { Calendar, ChevronDown, Edit2, Filter, Mail, Search, UserPlus } from 'lucide-react';
 import React, { useState } from 'react';
 import { AddUserModal } from './AddUserModal';
 
@@ -19,26 +19,26 @@ const UserManagement: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modaltype, setModaltype] = useState<string>('')
     const [search, setSearch] = useState('');
-    const [role, setRole] = useState<string | 'All'>('All');
+
     const [status, setStatus] = useState<string | 'All'>('All');
 
-
     const [users] = useState<User[]>([
-        { id: 1, name: 'Admin Super', email: 'admin@transport.com', role: 'Admin', status: 'active', lastLogin: '2024-03-15 08:30 AM' },
+        { id: 1, name: 'Admin Super', email: 'admin@transport.com', role: 'Staff', status: 'active', lastLogin: '2024-03-15 08:30 AM' },
         { id: 2, name: 'John Operations', email: 'j.ops@transport.com', role: 'Staff', status: 'active', lastLogin: '2024-03-15 09:15 AM' },
-        { id: 3, name: 'Sarah Finance', email: 's.finance@transport.com', role: 'Rider', status: 'active', lastLogin: '2024-03-14 04:00 PM' },
-        { id: 4, name: 'Mike Support', email: 'm.support@transport.com', role: 'Driver', status: 'inactive', lastLogin: '2024-03-10 11:00 AM' },
-        { id: 5, name: 'Ariful Islam', email: 'ariful.rider@transport.com', role: 'Rider', status: 'active', lastLogin: '2024-04-18 10:20 AM' },
-        { id: 6, name: 'Tanvir Ahmed', email: 'tanvir.driver@transport.com', role: 'Driver', status: 'active', lastLogin: '2024-04-18 07:45 AM' },
+        { id: 3, name: 'Sarah Finance', email: 's.finance@transport.com', role: 'Staff', status: 'active', lastLogin: '2024-03-14 04:00 PM' },
+        { id: 4, name: 'Mike Support', email: 'm.support@transport.com', role: 'Staff', status: 'inactive', lastLogin: '2024-03-10 11:00 AM' },
+        { id: 5, name: 'Ariful Islam', email: 'ariful.rider@transport.com', role: 'Staff', status: 'active', lastLogin: '2024-04-18 10:20 AM' },
+        { id: 6, name: 'Tanvir Ahmed', email: 'tanvir.driver@transport.com', role: 'Staff', status: 'active', lastLogin: '2024-04-18 07:45 AM' },
         { id: 7, name: 'Fatima Zohra', email: 'fatima.staff@transport.com', role: 'Staff', status: 'active', lastLogin: '2024-04-17 02:30 PM' },
-        { id: 8, name: 'Rakib Hossain', email: 'rakib.admin@transport.com', role: 'Admin', status: 'active', lastLogin: '2024-04-18 11:00 AM' },
-        { id: 9, name: 'Kamrul Hasan', email: 'kamrul.driver@transport.com', role: 'Driver', status: 'inactive', lastLogin: '2024-04-12 09:15 AM' },
-        { id: 10, name: 'Sajid Afridi', email: 'sajid.rider@transport.com', role: 'Rider', status: 'active', lastLogin: '2024-04-18 08:50 AM' },
+        { id: 8, name: 'Rakib Hossain', email: 'rakib.admin@transport.com', role: 'Staff', status: 'active', lastLogin: '2024-04-18 11:00 AM' },
+        { id: 9, name: 'Kamrul Hasan', email: 'kamrul.driver@transport.com', role: 'Staff', status: 'inactive', lastLogin: '2024-04-12 09:15 AM' },
+        { id: 10, name: 'Sajid Afridi', email: 'sajid.rider@transport.com', role: 'Staff', status: 'active', lastLogin: '2024-04-18 08:50 AM' },
         { id: 11, name: 'Mehedi Hasan', email: 'mehedi.staff@transport.com', role: 'Staff', status: 'inactive', lastLogin: '2024-04-05 11:20 AM' },
-        { id: 12, name: 'Nusrat Jahan', email: 'nusrat.rider@transport.com', role: 'Rider', status: 'active', lastLogin: '2024-04-17 06:10 PM' },
-        { id: 13, name: 'Abdur Rahman', email: 'abdur.driver@transport.com', role: 'Driver', status: 'active', lastLogin: '2024-04-18 05:30 AM' },
-        { id: 14, name: 'Lutfur Rahman', email: 'lutfur.admin@transport.com', role: 'Admin', status: 'active', lastLogin: '2024-04-18 12:45 PM' },
+        { id: 12, name: 'Nusrat Jahan', email: 'nusrat.rider@transport.com', role: 'Staff', status: 'active', lastLogin: '2024-04-17 06:10 PM' },
+        { id: 13, name: 'Abdur Rahman', email: 'abdur.driver@transport.com', role: 'Staff', status: 'active', lastLogin: '2024-04-18 05:30 AM' },
+        { id: 14, name: 'Lutfur Rahman', email: 'lutfur.admin@transport.com', role: 'Staff', status: 'active', lastLogin: '2024-04-18 12:45 PM' },
     ]);
+
 
 
 
@@ -65,7 +65,7 @@ const UserManagement: React.FC = () => {
                 {/* Header Section */}
                 <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
                     <div>
-                        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">User Accounts</h1>
+                        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">Staff Accounts</h1>
                         <p className="text-sm text-gray-500 mt-1">Manage permissions for all user types.</p>
                     </div>
                     <button
@@ -76,7 +76,7 @@ const UserManagement: React.FC = () => {
                         className="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl transition-all active:scale-95 font-semibold shadow-sm"
                     >
                         <UserPlus size={19} />
-                        <span>Add User</span>
+                        <span>Add Staff</span>
                     </button>
                 </div>
 
@@ -84,7 +84,7 @@ const UserManagement: React.FC = () => {
                 <div className="w-full p-4 mb-4 md:p-6 bg-white shadow-xl shadow-blue-50/50 rounded-3xl border border-gray-100">
                     <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
 
-                  
+
                         <div className="relative w-full lg:max-w-md group">
                             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                 <Search className="h-5 w-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
@@ -106,28 +106,13 @@ const UserManagement: React.FC = () => {
                                 <span className="text-sm font-medium">Filters:</span>
                             </div>
 
-                            {/* --- Unique Role Filter --- */}
-                            <div className="relative w-[48%] md:w-40 group">
-                                <select
-                                    value={role}
-                                    onChange={(e) => setRole(e.target.value )}
-                                    className="appearance-none w-full pl-10 pr-10 py-3 bg-gray-50 border border-transparent rounded-2xl text-sm font-semibold text-gray-700 focus:ring-4 focus:ring-blue-50 transition-all outline-none cursor-pointer group-hover:bg-gray-100"
-                                >
-                                    <option value="All">All Roles</option>
-                                    <option value="Admin">Admin</option>
-                                    <option value="Staff">Staff</option>
-                                    <option value="Rider">Rider</option>
-                                    <option value="Driver">Driver</option>
-                                </select>
-                                <ShieldCheck className="absolute left-3 top-3.5 h-4 w-4 text-blue-500 pointer-events-none" />
-                                <ChevronDown className="absolute right-3 top-3.5 h-4 w-4 text-gray-400 pointer-events-none group-hover:translate-y-0.5 transition-transform" />
-                            </div>
+                          
 
                             {/* --- Unique Status Filter --- */}
                             <div className="relative w-[48%] md:w-40 group">
                                 <select
                                     value={status}
-                                    onChange={(e) => setStatus(e.target.value )}
+                                    onChange={(e) => setStatus(e.target.value)}
                                     className="appearance-none w-full pl-10 pr-10 py-3 bg-gray-50 border border-transparent rounded-2xl text-sm font-semibold text-gray-700 focus:ring-4 focus:ring-green-50 transition-all outline-none cursor-pointer group-hover:bg-gray-100"
                                 >
                                     <option value="All">All Status</option>
@@ -138,9 +123,9 @@ const UserManagement: React.FC = () => {
                                 <ChevronDown className="absolute right-3 top-3.5 h-4 w-4 text-gray-400 pointer-events-none group-hover:translate-y-0.5 transition-transform" />
                             </div>
 
-                  
+
                             <button
-                                onClick={() => { setSearch(''); setRole('All'); setStatus('All'); }}
+                                onClick={() => { setSearch('');  setStatus('All'); }}
                                 className="w-full md:w-auto px-5 py-3 text-sm font-bold text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all"
                             >
                                 Reset

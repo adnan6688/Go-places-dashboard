@@ -20,6 +20,7 @@ type FormInputs = {
     vehicleColor: string;
     vehicleCategory: string;
     seatCount: number;
+    email : string;
 };
 
 interface InputFieldProps {

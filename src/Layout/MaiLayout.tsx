@@ -55,7 +55,7 @@ const manageMentItems: SidebarItem[] = [
     icon: <Bell size={20} />
   },
   {
-    name: 'User Accounts',
+    name: 'Staff Accounts',
     path: 'useraccounts',
     icon: <SquareUserRound size={20} />
   },
