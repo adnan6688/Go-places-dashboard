@@ -16,29 +16,29 @@ export type SidebarItem = {
 const sidebarItems: SidebarItem[] = [
   {
     name: "Dashboard",
-    path: "/",
+    path: "/dashboard",
     icon: <LayoutDashboard size={20} />,
   },
   {
     name: "Drivers",
-    path: "drivers",
+    path: "/dashboard/drivers",
     icon: <CarFront size={20} />,
   },
   {
     name: "Riders",
-    path: "riders",
+    path: "/dashboard/riders",
     icon: <ArrowLeftRight size={20} />,
   },
 
 
   {
     name: "Enrollments",
-    path: "enrollments",
+    path: "/dashboard/enrollments",
     icon: <FilePlusCorner size={20} />,
   },
   {
     name: "Uploads",
-    path: "uploads",
+    path: "/dashboard/uploads",
     icon: <ArrowUpFromLine size={20} />,
   },
 ];
@@ -46,22 +46,22 @@ const sidebarItems: SidebarItem[] = [
 const manageMentItems: SidebarItem[] = [
   {
     name: 'Payments Request',
-    path: 'payments',
+    path: '/dashboard/payments',
     icon: <CreditCard size={20} />
   },
   {
     name: 'Notifications',
-    path: 'notifications',
+    path: '/dashboard/notifications',
     icon: <Bell size={20} />
   },
   {
     name: 'Staff Accounts',
-    path: 'useraccounts',
+    path: '/dashboard/useraccounts',
     icon: <SquareUserRound size={20} />
   },
   {
     name: 'Reports',
-    path: 'reports',
+    path: '/dashboard/reports',
     icon: <ChartLine size={20} />
   },
 ];
@@ -69,17 +69,17 @@ const manageMentItems: SidebarItem[] = [
 const OperationsItems: SidebarItem[] = [
   {
     name: 'Rides & Monitoring',
-    path: 'ridesandmonitoring',
+    path: '/dashboard/ridesandmonitoring',
     icon: <Send size={20} />
   },
   {
     name: 'Live Map',
-    path: 'livemap',
+    path: '/dashboard/livemap',
     icon: <MapPin size={20} />
   },
   {
     name: 'Manual Dispatch',
-    path: 'manualdispatch',
+    path: '/dashboard/manualdispatch',
     icon: <Send size={20} />
   },
 ];
@@ -92,17 +92,17 @@ const SystemItems: SidebarItem[] = [
   // },
   {
     name: 'Activity Log',
-    path: 'activitylog',
+    path: '/dashboard/activitylog',
     icon: <ActivityIcon size={20} />
   },
   {
     name: 'Feedback',
-    path: 'feedback',
+    path: '/dashboard/feedback',
     icon: <BadgeQuestionMark size={20} />
   },
   {
     name: 'settings',
-    path: 'Settings',
+    path: '/dashboard/Settings',
     icon: <Settings size={20} />
   },
 

@@ -23,11 +23,17 @@ import Uploads from "../pages/Uploads/Uploads";
 import UserAccount from "../pages/UserAccounts/UserAccount";
 import PaymentDetails from "../pages/Payments/PaymentDetails";
 import Settings from "../pages/Settings/Settings";
+import Login from "../components/Login";
 
 
 export const router = createBrowserRouter([
+    
+{
+    path  : '/',
+    element : <Login></Login>
+},
     {
-        path: "/",
+        path: "/dashboard",
         element: <MainLayout />,
         children: [
             {
