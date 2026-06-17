@@ -50,7 +50,7 @@ const RidesByType = () => {
 
       {/* Title */}
       <h2 className="text-base sm:text-lg font-semibold text-gray-800 mb-4">
-        Rides by Type
+        Rider's by Type
       </h2>
 
       <div className="flex flex-col">

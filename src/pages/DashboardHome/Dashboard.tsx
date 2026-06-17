@@ -5,72 +5,84 @@ import RidesOverview from "./RidesOverview";
 import RidesByType from "./RidesByType";
 import RidesActivity from "./RidesActivity";
 import RevenueChart from "./RevenueChart";
+import { useQuery } from "@tanstack/react-query";
+import { dashboardOverView } from "../../api/auth.api";
 
 
 
 export default function Dashboard() {
   const { title, subtitle } = useDashboardTitle();
 
+  const {data} = useQuery({queryKey : ['dash_overView'],
+    queryFn : dashboardOverView,
+    retry : false
+  })
+
+  console.log(data)
 
   // data.ts
   const dashboardData = [
     {
       title: 'Total Riders',
-      value: 248,
-      percentage: '+12.5%',
+      value: data?.totalRiders ?? 0,
+      percentage: data?.riderGrowth ?? '',
       icon: <Users className="text-[#0073E6]" size={20} />,
       bg: '#0073E61A'
     },
     {
       title: 'Total Drivers',
-      value: 64,
-      percentage: '+8.2%',
+      value: data?.totalDrivers ?? 0,
+      percentage: data?.driverGrowth ?? '',
       icon: <CarFront className="text-[#14B88F]" size={20} />,
       bg: '#14B88F1A'
     },
     {
       title: 'Active Rides',
-      value: 8,
+      value: data?.activeRides ?? 0,
       percentage: '',
       icon: <Send className="text-[#F59F0A]" size={20} />,
       bg: '#F59F0A1A'
     },
     {
       title: 'Pending Tasks',
-      value: 23,
+      value: data?.pendingTasks ?? 0,
       percentage: '',
       icon: <TriangleAlert className="text-[#DF3A3A]" size={20} />,
       bg: '#DF3A3A1A'
     },
     {
       title: 'Completed Rides',
-      value: 1847,
+      value: data?.completedRides ?? 0,
       percentage: '',
       icon: <CircleCheckBig className="text-[#1DAF7E]" size={20} />,
       bg: '#1DAF7E1A'
     },
     {
       title: 'Total Revenue',
-      value: '$89,420',
-      percentage: '+15.3%',
+      value: `${data?.totalRevenue ?? ''}$`,
+      percentage: '',
       icon: <DollarSign className="text-[#0073E6]" size={20} />,
       bg: '#0073E61A'
     },
     {
       title: 'Pending Registrations',
-      value: 12,
+      value: data?.pendingRegistrations ?? 0,
       percentage: '',
       icon: <Clock7 className="text-[#F59F0A]" size={20} />,
       bg: '#F59F0A1A'
     },
     {
       title: 'Monthly Growth',
-      value: '12.5%',
+      value: data?.monthlyGrowth ?? 0,
       percentage: '',
       icon: <TrendingUp size={20} className="text-[#14B88F]" />,
       bg: '#14B88F1A'
     },
   ];
+
+
+
+
 
 
   return (
