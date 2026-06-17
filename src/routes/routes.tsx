@@ -24,17 +24,23 @@ import UserAccount from "../pages/UserAccounts/UserAccount";
 import PaymentDetails from "../pages/Payments/PaymentDetails";
 import Settings from "../pages/Settings/Settings";
 import Login from "../components/Login";
+import PrivetRoutes from "./PrivetRoute";
+import AuthPrivetRoute from "./AuthPrivetRoute";
 
 
 export const router = createBrowserRouter([
-    
-{
-    path  : '/',
-    element : <Login></Login>
-},
+
+    {
+        path: '/',
+        element: <AuthPrivetRoute>
+            <Login></Login>
+        </AuthPrivetRoute>
+    },
     {
         path: "/dashboard",
-        element: <MainLayout />,
+        element: <PrivetRoutes>
+            <MainLayout />
+        </PrivetRoutes>,
         children: [
             {
                 index: true,

@@ -4,32 +4,43 @@ import bannar from "../assets/Gemini_Generated_Image_wiypiwiypiwiypiw.png";
 import logo from "../assets/Logo.png"
 import { useMutation } from "@tanstack/react-query";
 import { loginApi } from "../api/auth.api";
+import { useAuth } from "../Hook/useAuth";
+import { useNavigate } from "react-router";
+import { showSuccess } from "../utils/toast";
 
 
 export default function Login() {
     const [showPassword, setShowPassword] = useState(false);
     const [email, setEmail] = useState<string>('admin@goplaces.com')
     const [password, setPassword] = useState<string>('Admin@1234!')
-
+    const { user, refetchUser } = useAuth()
+    const navigate = useNavigate()
 
 
     const loginMutation = useMutation({
-        mutationFn : loginApi,
-        
-        onSuccess : (data)=>{
-            console.log("success",data)
+        mutationFn: loginApi,
+
+        onSuccess: (data) => {
+            refetchUser()
+            const authRole = user?.user?.role
+            if (authRole && !['admin', 'staff'].includes(authRole)) {
+                //
+                return
+            }
+            showSuccess(data?.data?.message || 'Login successfully!')
+            navigate('/dashboard')
         },
-        onError : (error)=>{
-            console.log("error",error.message)
+        onError: (error) => {
+            console.log("error", error.message)
         }
     })
 
 
-    const {  isPending } = loginMutation;
+    const { isPending } = loginMutation;
 
-    const handleSubmit = async (e: { preventDefault: () => void; })=>{
+    const handleSubmit = async (e: { preventDefault: () => void; }) => {
         e.preventDefault()
-        loginMutation.mutate({email,password})
+        loginMutation.mutate({ email, password })
     }
 
     return (
@@ -120,9 +131,9 @@ export default function Login() {
                     <button
                         type="submit"
                         disabled={isPending}
-                        className="w-full cursor-pointer bg-white text-black py-3 rounded-xl font-semibold hover:bg-gray-200 duration-300"
+                        className="w-full cursor-pointer bg-white text-black py-3 rounded-xl font-semibold hover:bg-gray-200 duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-300"
                     >
-                     {isPending ? 'Logging..' : 'Login'}
+                        {isPending ? "Logging.." : "Login"}
                     </button>
 
                 </form>

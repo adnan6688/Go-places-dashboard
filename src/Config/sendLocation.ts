@@ -6,75 +6,75 @@ import { useLocation } from "react-router";
 export const dashboardTitleOptions: {
   [key: string]: { title: string; subtitle: string };
 } = {
-  "/": {
+  "/dashboard": {
     title: "Dashboard Overview",
     subtitle: "Welcome back! Here's what's happening today."
   },
-  "/riders": {
+  "/dashboard/riders": {
     title: "Rider Management",
     subtitle: "View and manage all registered riders"
   },
-  "/drivers": {
+  "/dashboard/drivers": {
     title: "Driver Management",
     subtitle: "View and manage all registered drivers"
   },
-  "/documents": {
+  "/dashboard/documents": {
     title: "Document Verification",
     subtitle: "Track and verify driver compliance documents"
   },
-  "/enrollments": {
+  "/dashboard/enrollments": {
     title: "Enrollment Forms",
     subtitle: "Register new riders and drivers using the official forms"
   },
-  "/uploads": {
+  "/dashboard/uploads": {
     title: "Document Upload Center",
     subtitle: "Upload documents anytime for drivers and riders"
   },
-  "/payments": {
+  "/dashboard/payments": {
     title: "Payment & Billing",
     subtitle: "Track financial transactions and payouts"
   },
-  "/notifications": {
+  "/dashboard/notifications": {
     title: "Notifications",
     subtitle: "Manage and send notifications to users"
   },
-  "/useraccounts": {
+  "/dashboard/useraccounts": {
     title: "User Accounts",
     subtitle: "Manage admin and staff accounts"
   },
-  "/reports": {
+  "/dashboard/reports": {
     title: "Reports & Analytics",
     subtitle: "View analytics and export reports"
   },
-  "/ridesandmonitoring": {
+  "/dashboard/ridesandmonitoring": {
     title: "Rides & Monitoring",
     subtitle: "Manage, monitor, and edit all rides in one place"
   },
-  "/livemap": {
+  "/dashboard/livemap": {
     title: "Live Map Tracking",
     subtitle: "Real-time driver and trip tracking"
   },
-  "/manualdispatch": {
+  "/dashboard/manualdispatch": {
     title: "Manual Dispatch",
     subtitle: "Create and assign rides manually for users who need assistance"
   },
-  "/support": {
+  "/dashboard/support": {
     title: "Support & Help Center",
     subtitle: "Manage customer support tickets"
   },
-  "/activitylog": {
+  "/dashboard/activitylog": {
     title: "Activity Log",
     subtitle: "Track all admin actions and system activities"
   },
-  "/feedback": {
+  "/dashboard/feedback": {
     title: "Feedback & Ratings",
     subtitle: "View rider and driver feedback"
   },
-  "/system-health": {
+  "/dashboard/system-health": {
     title: "System Health",
     subtitle: "Monitor server status and maintenance alerts"
   },
-  "/legal": {
+  "/dashboard/legal": {
     title: "Legal & Compliance",
     subtitle: "Manage legal documents and compliance requirements"
   } 

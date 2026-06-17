@@ -8,14 +8,8 @@ import RevenueChart from "./RevenueChart";
 
 
 
-
-
-
-
-
 export default function Dashboard() {
   const { title, subtitle } = useDashboardTitle();
-
 
 
   // data.ts
@@ -77,7 +71,6 @@ export default function Dashboard() {
       bg: '#14B88F1A'
     },
   ];
-
 
 
   return (
