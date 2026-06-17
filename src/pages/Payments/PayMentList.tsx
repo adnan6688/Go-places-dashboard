@@ -184,7 +184,7 @@ const PayMentList: React.FC = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <Link to="/payments/details/1">
+                    <Link to="/dashboard/payments/details/1">
                       <button className="px-4 py-2 text-sm font-semibold rounded-lg text-white bg-linear-to-r from-blue-500 to-indigo-600 hover:from-indigo-600 hover:to-blue-500 shadow-md hover:shadow-lg transition-all duration-300 flex items-center gap-2">
                         Details
                       </button></Link>

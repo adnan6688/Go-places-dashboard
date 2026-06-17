@@ -151,7 +151,7 @@ const DriverTable: React.FC = () => {
                         </div>
                     </div>
 
-                    <Link to={`/drivers/details/${user.id}`} className="block">
+                    <Link to={`/dashboard/drivers/details/${user.id}`} className="block">
                         <button className="w-full py-2.5 bg-blue-50 text-blue-600 rounded-xl font-semibold flex items-center justify-center gap-2 text-sm">
                             <Eye size={16} /> View Details
                         </button>
@@ -201,7 +201,7 @@ const DriverTable: React.FC = () => {
                                     : <span className="text-red-600 text-[14px]">Incomplete</span>}
                             </td>
                             <td className="px-5 py-4 text-center">
-                                <Link to={`/drivers/details/${user.id}`}>
+                                <Link to={`/dashboard/drivers/details/${user.id}`}>
                                     <button className="p-2 text-gray-400 hover:text-blue-600 hover:bg-white hover:shadow-sm rounded-xl transition-all">
                                         <Eye size={18} />
                                     </button>

@@ -140,7 +140,7 @@ const RiderManagement: React.FC = () => {
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 text-center">
-                                                <Link to={'/riders/details/:id'}>
+                                                <Link to={'/dashboard/riders/details/:id'}>
 
                                                     <button className="p-2 text-gray-400 hover:text-blue-600 hover:bg-white shadow-sm hover:shadow-md rounded-xl transition-all">
                                                         <Eye size={20} />
@@ -186,7 +186,7 @@ const RiderManagement: React.FC = () => {
                                         </div>
                                     </div>
 
-                                    <Link to={'/riders/details/:id'}>
+                                    <Link to={'/dashboard/riders/details/:id'}>
 
 
                                         <button className="w-full mt-2 py-3 bg-blue-50 text-blue-600 rounded-xl font-semibold flex items-center justify-center gap-2 active:scale-95 transition-transform">
