@@ -26,6 +26,7 @@ import Settings from "../pages/Settings/Settings";
 import Login from "../components/Login";
 import PrivetRoutes from "./PrivetRoute";
 import AuthPrivetRoute from "./AuthPrivetRoute";
+import NotFound from "../components/NotFound";
 
 
 export const router = createBrowserRouter([
@@ -127,4 +128,8 @@ export const router = createBrowserRouter([
             }
         ],
     },
+    {
+        path : '/*',
+        element : <NotFound></NotFound>
+    }
 ]);
