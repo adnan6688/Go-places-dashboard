@@ -32,25 +32,50 @@ export const dashboardOverView = async () => {
 
 
 export type TActivity = {
-  _id: string;
-  actor: {
     _id: string;
-  };
-  action: string;
-  targetType: "DRIVER" | "RIDER";
-  target: string;
-  title: string;
-  description: string;
-  metadata: {
-    driverName?: string;
-    driverCustomId?: string;
-    riderName?: string;
-    riderCustomId?: string;
-  };
-  createdAt: string;
-  updatedAt: string;
+    actor: {
+        _id: string;
+    };
+    action: string;
+    targetType: "DRIVER" | "RIDER";
+    target: string;
+    title: string;
+    description: string;
+    metadata: {
+        driverName?: string;
+        driverCustomId?: string;
+        riderName?: string;
+        riderCustomId?: string;
+    };
+    createdAt: string;
+    updatedAt: string;
 };
 export const recentActivity = async () => {
     const res = await axiosInstance.get('/admin/dashboard/recent-activity')
     return res?.data?.data || {}
+}
+
+
+export const revenueChartApi = async () => {
+
+    const res = await axiosInstance.get('/admin/dashboard/revenue-trend')
+    return res?.data?.data || {}
+}
+
+
+type TParams = {
+    page?: number,
+    search?: string
+}
+
+export const allDrivers = async (page?: number) => {
+
+    const params: TParams = {};
+
+    if (page) {
+        params.page = Number(page);
+    }
+    
+    const res = await axiosInstance.get('/admin/drivers', { params });
+    return res?.data?.data
 }

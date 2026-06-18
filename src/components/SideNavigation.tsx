@@ -18,9 +18,10 @@ export default function SideNavigation({ title, sideItemsArray, setIsSidebarOpen
 
 
             <nav className=" space-y-2">
-                {sideItemsArray.map((item) => (
+                {sideItemsArray?.map((item,i) => (
                     <NavLink
                         to={item.path}
+                        key={i}
                         end
                         onClick={() => setIsSidebarOpen(false)}
                         className={({ isActive }) =>

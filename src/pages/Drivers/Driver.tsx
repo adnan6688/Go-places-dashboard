@@ -14,11 +14,11 @@ export default function Driver() {
   return (
     <div className="sm:p-3 space-y-2">
 
-   <div>
-       <DashboardHeading title={title} subtitle={subtitle}></DashboardHeading>
+      <div>
+        <DashboardHeading title={title} subtitle={subtitle}></DashboardHeading>
 
 
-   </div>
+      </div>
       <DriverTable></DriverTable>
     </div>
   )
