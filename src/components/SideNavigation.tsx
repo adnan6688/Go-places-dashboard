@@ -20,8 +20,8 @@ export default function SideNavigation({ title, sideItemsArray, setIsSidebarOpen
             <nav className=" space-y-2">
                 {sideItemsArray.map((item) => (
                     <NavLink
-                        key={item.path}
                         to={item.path}
+                        end
                         onClick={() => setIsSidebarOpen(false)}
                         className={({ isActive }) =>
                             `flex items-center gap-3 rounded-lg px-4 py-2 text-sm sm:text-[18px] font-medium transition-all
