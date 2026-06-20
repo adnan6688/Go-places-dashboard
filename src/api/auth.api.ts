@@ -65,17 +65,60 @@ export const revenueChartApi = async () => {
 
 type TParams = {
     page?: number,
-    search?: string
+    search?: string,
+    status?: string,
+    docsStatus?: string
+}
+export type TDriver = {
+    _id: string,
+    fullName: string,
+    registeredDate: string,
+    licenseNumber: string,
+    phone: string,
+    status: string,
+    dotExpiration: string,
+    docsStatus: string
 }
 
-export const allDrivers = async (page?: number) => {
+export const allDrivers = async (page?: number, search?: string, status?: string, docsStatus?: string) => {
 
     const params: TParams = {};
 
     if (page) {
         params.page = Number(page);
     }
-    
+    if (search) {
+        params.search = search
+    }
+    if (status) {
+        params.status = status
+    }
+    if (docsStatus) {
+        params.docsStatus = docsStatus
+    }
+
     const res = await axiosInstance.get('/admin/drivers', { params });
     return res?.data?.data
+}
+
+export interface TDocumentFile {
+  _id: string;
+  category: string;
+  title: string;
+  url: string;
+  public_id: string;
+  status: "verified" | "unverified" | string;
+  mimeType: string;
+  uploadedBy: string;
+  uploadedAt: string;
+}
+export const driverDetailsApi = async (id: string) => {
+
+    try {
+        const data = await axiosInstance.get(`/admin/drivers/${id}`);
+        return data?.data?.data;
+    } catch (error) {
+        console.error("Failed to fetch driver:", error);
+        return {};
+    }
 }
