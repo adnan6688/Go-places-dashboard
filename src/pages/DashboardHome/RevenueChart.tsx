@@ -29,7 +29,7 @@ const RevenueChart: React.FC = () => {
   }));
 
 
-  console.log(formattedRevenueData)
+
 
   const formatYAxis = (value: number) => {
     if (value >= 1000) {

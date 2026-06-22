@@ -17,6 +17,8 @@ const getStatusStyle = (status: string) => {
     }
 };
 
+
+
 const DriverTable: React.FC = () => {
 
     const [page, setPage] = useState<number>(1)
@@ -33,10 +35,9 @@ const DriverTable: React.FC = () => {
     }, [debounce]);
 
     const { data: driverData, isLoading } = useQuery({
-        queryKey: ['drivers', page, finalSarch, driverStatus , docsStatus],
+        queryKey: ['drivers', page, finalSarch, driverStatus, docsStatus],
         queryFn: () => allDrivers(page, finalSarch, driverStatus, docsStatus)
     })
-
 
 
 
@@ -47,6 +48,8 @@ const DriverTable: React.FC = () => {
     const onNext = () => {
         setPage(page + 1)
     }
+
+    console.log(driverData?.drivers?.length)
 
     return (<div className="bg-gray-50 w-full  ">
 
@@ -70,35 +73,37 @@ const DriverTable: React.FC = () => {
                     // value={driverStatus}
                     onChange={(e) => {
                         setDriverStatus((e.target.value).toUpperCase());
-              
+
                     }}
-                    className="w-full px-4 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
+                    className="w-full cursor-pointer px-4 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
                 >
                     <option value="">All Status</option>
                     <option value="ACTIVE">Active</option>
                     <option value="INACTIVE">Inactive</option>
                 </select>
             </div>
-          
+
             <div className='relative'>
-  <select
-                value={docsStatus}
-                onChange={(e) => setDocsStatus(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
-            >
-                <option value="">Docs Status</option>
-                <option value="Verified">Verified</option>
-                <option value="Incomplete">Incompleted</option>
-            </select>
+                <select
+                    value={docsStatus}
+                    onChange={(e) => setDocsStatus(e.target.value)}
+                    className="w-full cursor-pointer px-4 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
+                >
+                    <option value="">Docs Status</option>
+                    <option value="Verified">Verified</option>
+                    <option value="Incomplete">Incompleted</option>
+                </select>
             </div>
         </div>
 
         {/* Mobile Card View (Visible only on small screens) */}
         <div className="grid grid-cols-1 gap-4 md:hidden">
-            {driverData?.drivers?.length === 0 ? (
-                <div className="text-center py-10 bg-white rounded-2xl text-gray-400">No drivers found</div>
+            {isLoading ? <div className='col-auto'>
+                <SmallLoading message='drivers loading....'></SmallLoading>
+            </div> : driverData?.drivers?.length === 0 ? (
+                <div className="text-center py-10 bg-white rounded-2xl text-black">No drivers found</div>
             ) : (
-                driverData?.drivers?.map((user:TDriver) => (
+                driverData?.drivers?.map((user: TDriver) => (
                     <div key={user._id} className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm space-y-4">
                         <div className="flex justify-between items-start">
                             <div>
@@ -174,7 +179,11 @@ const DriverTable: React.FC = () => {
                                     <SmallLoading message="Loading drivers..." />
                                 </td>
                             </tr>
-                            : driverData?.drivers?.map((user :TDriver) => (
+                            : driverData?.drivers?.length == 0 ? <tr>
+                                <td colSpan={10} className="py-10">
+                                    <div className="text-center py-10 bg-white rounded-2xl text-black">No drivers found</div>
+                                </td>
+                            </tr> : driverData?.drivers?.map((user: TDriver) => (
                                 <tr key={user._id} className="hover:bg-blue-50/40 transition-colors duration-200">
                                     <td className="px-5 py-4">
                                         <div className="font-semibold text-gray-800 text-sm">{user?.fullName}</div>

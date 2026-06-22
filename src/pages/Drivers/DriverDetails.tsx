@@ -6,10 +6,10 @@ import {
   Truck,
   User
 } from 'lucide-react';
-import React, { useEffect } from 'react';
+import React from 'react';
 import { DocumentFileCard } from './DocumentFileCard';
 import { DocumentItem } from './DocumentItem';
-import { driver } from './DriverTypes';
+
 import { InfoRow } from './InforRow';
 import { useParams } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
@@ -41,7 +41,7 @@ const DriverDetails: React.FC = () => {
 
   const { id } = useParams()
 
-  const { data: details, isLoading } = useQuery({
+  const { data: details, isLoading  , refetch} = useQuery({
     queryKey: ['details'],
     queryFn: () => driverDetailsApi(id as string)
   })
@@ -143,7 +143,7 @@ const DriverDetails: React.FC = () => {
               <DocumentItem
                 key={doc._id}
                 label={doc.category}
-                status={doc.status}
+                status={doc?.status}
               />
             ))}
           </Card>
@@ -170,12 +170,15 @@ const DriverDetails: React.FC = () => {
             {details?.documents?.map((doc: TDocumentFile) => (
               <DocumentFileCard
                 key={doc?._id}
+                id={doc?._id}
                 title={doc?.title}
                 category={doc?.category}
                 type={doc?.mimeType}
                 date={doc?.uploadedAt}
                 fileUrl={doc?.url}
                 status={doc?.status}
+                driverId={id as string}
+                refetch={refetch}
               />
             ))}
           </div>

@@ -63,11 +63,13 @@ export const revenueChartApi = async () => {
 }
 
 
-type TParams = {
+export type TParams = {
     page?: number,
     search?: string,
+    limit ? : number,
     status?: string,
-    docsStatus?: string
+    docsStatus?: string,
+    riderType? : string
 }
 export type TDriver = {
     _id: string,
@@ -107,7 +109,7 @@ export interface TDocumentFile {
   title: string;
   url: string;
   public_id: string;
-  status: "verified" | "unverified" | string;
+  status: "verified" | "pending" | "expired";
   mimeType: string;
   uploadedBy: string;
   uploadedAt: string;

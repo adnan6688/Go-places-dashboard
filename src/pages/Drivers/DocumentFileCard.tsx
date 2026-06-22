@@ -4,7 +4,13 @@ import {
   FileText,
   Image as ImageIcon,
   Download,
+  Clock,
+  LoaderCircle,
+  Check,
 } from "lucide-react";
+import axiosInstance from "../../baseUrl/baseurl";
+import { useState } from "react";
+import { ToastMessage } from "../../components/ToastMessage";
 
 interface Props {
   title: string;
@@ -13,24 +19,46 @@ interface Props {
   date: string;
   fileUrl: string;
   status: string;
+  id: string;
+  driverId: string;
+  refetch: () => Promise<any>;
 }
 
-export const DocumentFileCard = ({
-  title,
-  category,
-  type,
-  date,
-  fileUrl,
-  status,
-}: Props) => {
+export const DocumentFileCard = ({ title, category, type, date, fileUrl, status, id, driverId, refetch }: Props) => {
   const isImage = type.startsWith("image/");
   const isPdf = type === "application/pdf";
-  const isVerified = status?.toLowerCase() === "verified";
+  const [documentIdLoad, setDocumentIdLoad] = useState<string>('')
+  const [docStatus, setDocStatus] = useState<string>('')
+
+  const updatedDocumentsStatus = async (documentId: string, status: string) => {
+    setDocumentIdLoad(documentId)
+    setDocStatus(status)
+    try {
+      const update = await axiosInstance.patch(`/admin/drivers/update-document-status/${driverId}`, {
+        documentId,
+        status
+      })
+      if (update?.data?.success) {
+        const msg = update?.data?.message
+        ToastMessage('success', `${msg}`)
+        refetch()
+      }
+    }
+    catch (err) {
+    }
+    finally {
+      //
+      setDocumentIdLoad('')
+      setDocStatus('')
+    }
+  }
+
+
 
   return (
     <div className="bg-white rounded-xl overflow-hidden border shadow-sm hover:shadow-md transition">
 
-      {/* ================= PREVIEW ================= */}
+
       <div className="h-36 bg-white overflow-hidden flex items-center justify-center relative">
 
         {/* IMAGE */}
@@ -64,7 +92,7 @@ export const DocumentFileCard = ({
         )}
       </div>
 
-      {/* ================= CONTENT ================= */}
+
       <div className="p-3 space-y-2">
 
         {/* TITLE */}
@@ -94,19 +122,58 @@ export const DocumentFileCard = ({
         </div>
 
         {/* STATUS */}
-        <div
-          className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${
-            isVerified
+        <div className="flex justify-between">
+          <div
+            className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${status === "verified"
               ? "bg-emerald-100 text-emerald-700"
-              : "bg-red-100 text-red-600"
-          }`}
-        >
-          {isVerified ? (
-            <CheckCircle2 size={12} />
-          ) : (
-            <XCircle size={12} />
-          )}
-          {isVerified ? "Verified" : "Unverified"}
+              : status === "pending"
+                ? "bg-yellow-100 text-yellow-700"
+                : "bg-red-100 text-red-600"
+              }`}
+          >
+            {status === "verified" ? (
+              <CheckCircle2 size={12} />
+            ) : status === "pending" ? (
+              <Clock size={12} />
+            ) : (
+              <XCircle size={12} />
+            )}
+
+            {status === "verified"
+              ? "Verified"
+              : status === "pending"
+                ? "Pending"
+                : "Expired"}
+          </div>
+
+
+          {
+            status == 'pending' && <div className="flex items-center gap-2">
+              <button onClick={() => updatedDocumentsStatus(id, 'verified')} >
+                {documentIdLoad === id && docStatus == 'verified' ? (
+                  <LoaderCircle className="animate-spin" size={16} />
+                ) : (
+                  <div className="p-2 cursor-pointer rounded bg-emerald-100 text-emerald-700 hover:bg-emerald-200">
+                    <Check size={16} />
+                  </div>
+                )}
+              </button>
+
+              <button onClick={() => updatedDocumentsStatus(id, 'expired')} >
+
+                {documentIdLoad === id && docStatus == 'expired' ? (
+                  <LoaderCircle className="animate-spin" size={16} />
+                ) : (
+                  <div className="p-2 cursor-pointer rounded bg-red-100 text-red-600 hover:bg-red-200">
+                    <XCircle size={16} />
+                  </div>
+                )}
+
+              </button>
+            </div>
+          }
+
+
         </div>
 
         {/* DOWNLOAD */}

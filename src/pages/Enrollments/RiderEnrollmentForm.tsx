@@ -2,29 +2,31 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useState } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
+import { enrollmentRider } from './enrollment';
+
 
 // Define Validation Schema
 const formSchema = z.object({
   // Section 1
   fullName: z.string().min(2, "Full name is required"),
-  dob: z.string().min(1, "Date of birth is required"),
+  dateOfBirth: z.string().min(1, "Date of birth is required"),
   pmiNumber: z.string().min(1, "PMI number is required"),
-  phoneNumber: z.string().min(10, "Valid phone number required"),
+  phone: z.string().min(10, "Valid phone number required"),
   county: z.string().min(1, "County is required"),
   address: z.string().min(5, "Full address is required"),
+
+  riderType: z.string(),
 
   // email
   email: z.string().email("Invalid email address"),
 
-  password: z.string().min(6, "Password must be at least 6 characters"),
+
 
   // Section 2
   supportInstructions: z.string().optional(),
   serviceNotes: z.string().optional(),
-  startDate: z.string().min(1, "Start date is required"),
-  endDate: z.string().min(1, "End date is required"),
+  serviceStartDate: z.string().min(1, "Start date is required"),
+  serviceEndDate: z.string().min(1, "End date is required"),
 
   // Section 3
   caseManagerName: z.string().min(2, "Case manager name is required"),
@@ -42,7 +44,7 @@ type FormData = z.infer<typeof formSchema>;
 
 const RiderEnrollmentForm = () => {
 
-  const [showPassword, setShowPassword] = useState(false);
+
 
   const { register, handleSubmit, watch, formState: { errors }, } = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -59,9 +61,40 @@ const RiderEnrollmentForm = () => {
   const oneWayTotal = (values.oneWayQty || 0) * (values.oneWayRate || 0);
   const mileageTotal = (values.mileageQty || 0) * (values.mileageRate || 0);
 
-  const onSubmit = (data: FormData) => {
-    console.log("Form Submitted Successfully:", data);
-    alert("Check console for submitted data!");
+  const onSubmit = async (data: FormData) => {
+
+
+    const { address, fullName, county, dateOfBirth, email,  serviceNotes, riderType, pmiNumber, mileageRate, mileageQty, casePhone, oneWayRate, oneWayQty, caseEmail, caseManagerName, serviceEndDate, serviceStartDate, supportInstructions, phone } = data
+
+
+    const caseManager = {
+      name: caseManagerName,
+      phone: casePhone,
+      email: caseEmail
+    }
+
+    const transportAuthorization = {
+      oneWayTransport: {
+        unitRate: oneWayRate,
+        unitQuantity: oneWayQty
+      },
+      mileageReimbursement: {
+        unitRate: mileageRate,
+        unitQuantity: mileageQty
+      }
+    }
+
+
+    const sendData = { address, email, transportAuthorization, riderType, caseManager, fullName, county, dateOfBirth, pmiNumber, serviceEndDate, serviceStartDate, supportInstructions, phone, serviceNotes }
+
+    try {
+      const res = await enrollmentRider(sendData)
+      console.log(res)
+    }
+    catch (err) {
+      console.log(err)
+    }
+
   };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -69,6 +102,9 @@ const RiderEnrollmentForm = () => {
     w-full p-2 bg-gray-50 border rounded-md outline-none transition-colors
     ${error ? 'border-red-500 focus:border-red-600' : 'border-gray-200 focus:border-blue-500'}
   `;
+
+
+
 
   return (
     <div className=" ">
@@ -89,7 +125,7 @@ const RiderEnrollmentForm = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium">Date of Birth</label>
-                <input type="date" {...register("dob")} className={inputClass(errors.dob)} />
+                <input type="date" {...register("dateOfBirth")} className={inputClass(errors.dateOfBirth)} />
               </div>
               <div>
                 <label className="text-sm font-medium">PMI Number</label>
@@ -100,7 +136,7 @@ const RiderEnrollmentForm = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium">Phone Number</label>
-                <input {...register("phoneNumber")} placeholder="(555) 000-0000" className={inputClass(errors.phoneNumber)} />
+                <input {...register("phone")} placeholder="(555) 000-0000" className={inputClass(errors.phone)} />
               </div>
               <div>
                 <label className="text-sm font-medium">County</label>
@@ -110,41 +146,52 @@ const RiderEnrollmentForm = () => {
 
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+              {/* Email */}
               <div>
-                <label className="text-sm font-medium">Rider Email</label>
-                <input {...register("email")} placeholder="Rider Email" className={inputClass(errors.email)} />
-              </div>
-              <div className="relative">
-                <label className="text-sm font-medium">
-                  Rider Password (One Time)
+                <label className="text-sm font-medium block mb-1">
+                  Rider Email
                 </label>
 
-                <div className="relative">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    defaultValue={"145356"}
-                    {...register("password")}
-                    placeholder="Create rider password"
-                    className={`${inputClass(errors.password)} pr-10`}
-                  />
+                <input
+                  {...register("email", { required: "Email is required" })}
+                  placeholder="Rider Email"
+                  className={`border p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-400 ${errors.email ? "border-red-500" : "border-gray-300"
+                    }`}
+                />
 
-                  {/* Eye Icon */}
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
-                  >
-                    {showPassword ? (
-                      <EyeOff size={18} />
-                    ) : (
-                      <Eye size={18} />
-                    )}
-                  </button>
-                </div>
+                {errors.email && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.email.message}
+                  </p>
+                )}
+              </div>
+
+              {/* Rider Type */}
+              <div>
+                <label className="text-sm font-medium block mb-1">
+                  Rider Type
+                </label>
+
+                <select
+                  {...register("riderType", { required: "Select rider type" })}
+                  className={`border p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-400 ${errors.riderType ? "border-red-500" : "border-gray-300"
+                    }`}
+                >
+                  <option value="">Select service type</option>
+                  <option value="standard">Standard</option>
+                  <option value="assist">Assist</option>
+                  <option value="wheelchair">Wheelchair</option>
+                </select>
+
+                {errors.riderType && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.riderType.message}
+                  </p>
+                )}
               </div>
 
             </div>
-
             <div>
               <label className="text-sm font-medium">Address</label>
               <input {...register("address")} placeholder="Full address" className={inputClass(errors.address)} />
@@ -165,14 +212,19 @@ const RiderEnrollmentForm = () => {
               <label className="text-sm font-medium">Support Instructions</label>
               <textarea {...register("supportInstructions")} className={inputClass()} rows={2} placeholder="List accessibility needs..." />
             </div>
+            <div>
+              <label className="text-sm font-medium">Service Notes</label>
+              <textarea {...register("serviceNotes")} className={inputClass()} rows={2} placeholder="additional service notes..." />
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium">Start Date</label>
-                <input type="date" {...register("startDate")} className={inputClass(errors.startDate)} />
+                <input type="date" {...register("serviceStartDate")} className={inputClass(errors.serviceStartDate)} />
               </div>
               <div>
                 <label className="text-sm font-medium">End Date</label>
-                <input type="date" {...register("endDate")} className={inputClass(errors.endDate)} />
+                <input type="date" {...register("serviceEndDate")} className={inputClass(errors.serviceEndDate)} />
               </div>
             </div>
           </div>

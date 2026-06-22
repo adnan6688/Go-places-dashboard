@@ -18,7 +18,6 @@ export default function Dashboard() {
     retry : false
   })
 
-  console.log(data)
 
   // data.ts
   const dashboardData = [
