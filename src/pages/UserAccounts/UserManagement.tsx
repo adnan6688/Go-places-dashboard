@@ -1,6 +1,8 @@
 import { Calendar, ChevronDown, Edit2, Filter, Mail, Search, UserPlus } from 'lucide-react';
 import React, { useState } from 'react';
 import { AddUserModal } from './AddUserModal';
+import { useQuery } from '@tanstack/react-query';
+import { staffApi } from './staff';
 
 // Types
 type Role = 'Admin' | 'Staff' | 'Rider' | 'Driver';
@@ -16,9 +18,17 @@ interface User {
 }
 
 const UserManagement: React.FC = () => {
+
+
+
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modaltype, setModaltype] = useState<string>('')
     const [search, setSearch] = useState('');
+
+    const {data} = useQuery({
+        queryKey : ['staff-result'],
+        queryFn : staffApi
+    })
 
     const [status, setStatus] = useState<string | 'All'>('All');
 

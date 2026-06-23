@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import type { ChangeEvent, FormEvent } from "react";
 import axiosInstance from "../../baseUrl/baseurl";
+import { ToastMessage } from "../../components/ToastMessage";
 
 
 type props = {
@@ -19,7 +20,9 @@ type FileMap = Record<string, File | null>;
 
 const DocumentUploadForm = ({ type }: props) => {
   const [driver, setDriver] = useState("");
-  const [category, setCategory] = useState("General Document");
+  const [load, setLoad] = useState<boolean>(false)
+
+  const [riderId, setRiderId] = useState<string>("")
 
   // each type = one file only
   const [files, setFiles] = useState<FileMap>({});
@@ -28,6 +31,7 @@ const DocumentUploadForm = ({ type }: props) => {
   const fileLimit = type === "Driver" ? 4 : 2;
 
   const [users, setUsers] = useState<any[]>([]);
+  const [allRiders, setAllRiders] = useState<any[]>([])
 
 
 
@@ -45,15 +49,36 @@ const DocumentUploadForm = ({ type }: props) => {
     setUsers(allData);
   };
 
+
+
+  const fetchAllRider = async () => {
+    let page = 1; let allData: any[] = []; let totalPages = 1;
+    do {
+      const res = await axiosInstance.get(`/admin/riders?page=${page}&limit=10`);
+      console.log("result riders", res)
+      const data = res?.data?.data?.riders;
+      totalPages = res.data?.data?.pagination?.totalPages;
+      allData = [...allData, ...data];
+      page++;
+    } while (page <= totalPages);
+    setAllRiders(allData);
+  };
+
+
+
   useEffect(() => {
-    fetchAllUsers();
-  }, []);
+    if (type == 'Driver') {
+      fetchAllUsers()
+      setFiles({})
+      setAllRiders([])
+    }
+    else {
+      fetchAllRider()
+      setFiles({})
+      setUsers([])
+    }
 
-  console.log(users)
-
-
-
-
+  }, [type]);
 
 
 
@@ -112,27 +137,95 @@ const DocumentUploadForm = ({ type }: props) => {
     });
   };
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    console.log(riderId)
+    setLoad(true)
     e.preventDefault();
 
+
     const selectedFiles = Object.values(files).filter(Boolean);
+    console.log(selectedFiles)
 
     const newErrors: { [key: string]: string } = {};
 
-    if (!driver) newErrors.driver = "Please select a driver";
+    if (type == 'Driver' && !driver) {
+      newErrors.driver = "Please select a driver"
+      setLoad(false)
+    };
     if (selectedFiles.length === 0)
+
       newErrors.file = "Please upload at least one document";
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
+      setLoad(false)
       return;
     }
 
-    console.log("Driver:", driver);
-    console.log("Category selected:", category);
-    console.log("Files:", files);
 
 
+    const generalDocument = files['General Document'] ?? null
+    const generalTraining = files['General Training'] ?? null
+    const mndotTraining = files['MnDOT Training'] ?? null
+    const drivingRecord = files['Driving Record'] ?? null
+
+
+
+    const formData = new FormData();
+
+
+
+
+    if (driver) {
+      formData.append("driverId", driver);
+    }
+
+    if (riderId) {
+      formData.append('riderId', riderId)
+    }
+
+
+    if (generalDocument) {
+      formData.append("generalDocument", generalDocument);
+    }
+
+    if (generalTraining) {
+      formData.append("generalTraining", generalTraining);
+    }
+
+    if (mndotTraining) {
+      formData.append("mndotTraining", mndotTraining);
+    }
+
+    if (drivingRecord) {
+      formData.append("drivingRecord", drivingRecord);
+    }
+    console.log("fomr-data", formData)
+
+
+    const url = type === "Driver"
+      ? "/admin/drivers/upload-documents"
+      : "/admin/riders/upload-documents";
+
+    try {
+      const result = await axiosInstance.post(url, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      if (result.data?.success) {
+        setFiles({});
+        ToastMessage("success", result?.data?.message);
+      }
+    } catch (err: any) {
+      ToastMessage(
+        "error",
+        err?.response?.data?.message || "Something went wrong"
+      );
+    } finally {
+      setLoad(false);
+    }
   };
 
   const renderPreview = (file: File) => {
@@ -167,21 +260,32 @@ const DocumentUploadForm = ({ type }: props) => {
           </h2>
 
           <select
-            value={driver}
-            onChange={(e) => setDriver(e.target.value)}
+            value={type == 'Driver' ? driver : riderId}
+            onChange={(e) => {
+              type == 'Driver' ? setDriver(e.target.value) : setRiderId(e.target.value)
+            }}
             className="w-full bg-gray-50 p-3 rounded-xl"
           >
             <option value="">Choose</option>
-         
 
-            {users?.map((u) => (
-              <option key={u._id} value={u._id}>
-                {u?.fullName}
-              </option>
-            ))}
+
+            {
+              type === "Driver"
+                ? users?.map((u) => (
+                  <option key={u._id} value={u._id}>
+                    {u?.fullName}
+                  </option>
+                ))
+                : allRiders?.map((u) => (
+                  <option key={u._id} value={u._id}>
+                    {u?.fullName}
+                  </option>
+                ))
+            }
+
           </select>
 
-          {errors.driver && (
+          {type == 'Driver' && errors.driver && (
             <p className="text-red-500 text-xs mt-2 flex gap-1">
               <AlertCircle size={14} /> {errors.driver}
             </p>
@@ -245,9 +349,12 @@ const DocumentUploadForm = ({ type }: props) => {
 
           <button
             type="submit"
-            className="w-full mt-6 bg-blue-600 text-white py-3 rounded-xl"
+            disabled={load}
+            className="w-full disabled:cursor-not-allowed cursor-pointer disabled:bg-gray-400 mt-6 bg-blue-600 text-white py-3 rounded-xl"
           >
-            Upload Documents
+            {
+              load ? 'Uploading...' : 'Upload Documents'
+            }
           </button>
         </div>
       </form>

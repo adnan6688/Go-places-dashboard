@@ -18,7 +18,6 @@ import RiderDetails from "../pages/Riders/RiderDetails";
 import MonitorDteails from "../pages/RidesAndMonitoring/MonitorDteails";
 import RidesAndMonitoring from "../pages/RidesAndMonitoring/RidesAndMonitoring";
 import Support from "../pages/Support/Support";
-import Uploads from "../pages/Uploads/Uploads";
 import UserAccount from "../pages/UserAccounts/UserAccount";
 import PaymentDetails from "../pages/Payments/PaymentDetails";
 import Settings from "../pages/Settings/Settings";
@@ -27,6 +26,7 @@ import PrivetRoutes from "./PrivetRoute";
 import AuthPrivetRoute from "./AuthPrivetRoute";
 import NotFound from "../components/NotFound";
 import RiderPage from "../pages/Riders/RiderPage";
+import UploadsPage from "../pages/Uploads/UploadsPage";
 
 
 export const router = createBrowserRouter([
@@ -69,7 +69,7 @@ export const router = createBrowserRouter([
                 Component: Enrollments
             }, {
                 path: 'uploads',
-                Component: Uploads
+                Component: UploadsPage
             }, {
                 path: 'useraccounts',
                 Component: UserAccount

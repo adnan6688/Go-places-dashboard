@@ -4,7 +4,7 @@ import { useDashboardTitle } from "../../Config/sendLocation";
 import { Car, UserPlus } from "lucide-react";
 import DocumentUploadForm from "./DocumentUploadForm";
 
-export default function Uploads() {
+export default function UploadsPage() {
   const { title, subtitle } = useDashboardTitle();
   const [activeTab, setActiveTab] = useState<'rider' | 'driver'>('rider');
 
