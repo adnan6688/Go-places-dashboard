@@ -3,6 +3,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { enrollmentRider } from './enrollment';
+import { ToastMessage } from '../../components/ToastMessage';
+import { useState } from 'react';
 
 
 // Define Validation Schema
@@ -10,8 +12,8 @@ const formSchema = z.object({
   // Section 1
   fullName: z.string().min(2, "Full name is required"),
   dateOfBirth: z.string().min(1, "Date of birth is required"),
-  pmiNumber: z.string().min(1, "PMI number is required"),
-  phone: z.string().min(10, "Valid phone number required"),
+  pmiNumber: z.string().optional(),
+  phone: z.string().optional(),
   county: z.string().min(1, "County is required"),
   address: z.string().min(5, "Full address is required"),
 
@@ -45,6 +47,7 @@ type FormData = z.infer<typeof formSchema>;
 const RiderEnrollmentForm = () => {
 
 
+  const [load, setLoad] = useState<boolean>(false)
 
   const { register, handleSubmit, watch, formState: { errors }, } = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -63,8 +66,8 @@ const RiderEnrollmentForm = () => {
 
   const onSubmit = async (data: FormData) => {
 
-
-    const { address, fullName, county, dateOfBirth, email,  serviceNotes, riderType, pmiNumber, mileageRate, mileageQty, casePhone, oneWayRate, oneWayQty, caseEmail, caseManagerName, serviceEndDate, serviceStartDate, supportInstructions, phone } = data
+    setLoad(true)
+    const { address, fullName, county, dateOfBirth, email, serviceNotes, riderType, pmiNumber, mileageRate, mileageQty, casePhone, oneWayRate, oneWayQty, caseEmail, caseManagerName, serviceEndDate, serviceStartDate, supportInstructions, phone } = data
 
 
     const caseManager = {
@@ -89,10 +92,22 @@ const RiderEnrollmentForm = () => {
 
     try {
       const res = await enrollmentRider(sendData)
-      console.log(res)
+
+      if (res?.success) {
+        const msg = res?.message
+        ToastMessage('success', msg)
+      }
+
     }
-    catch (err) {
-      console.log(err)
+    catch (err: any) {
+      const message =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Something went wrong";
+
+      ToastMessage('error', message)
+    } finally {
+      setLoad(false)
     }
 
   };
@@ -133,11 +148,26 @@ const RiderEnrollmentForm = () => {
               </div>
             </div>
 
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+
               <div>
                 <label className="text-sm font-medium">Phone Number</label>
-                <input {...register("phone")} placeholder="(555) 000-0000" className={inputClass(errors.phone)} />
+                <input
+                  {...register("phone", {
+                    required: "Phone number required",
+                    pattern: {
+                      value: /^\(\d{3}\)\s\d{3}-\d{4}$/,
+                      message: "Use format like (555) 000-0000"
+                    }
+                  })}
+                  placeholder="(555) 000-0000"
+                  className={inputClass(errors.phone)}
+                />
               </div>
+
+
               <div>
                 <label className="text-sm font-medium">County</label>
                 <input {...register("county")} placeholder="County" className={inputClass(errors.county)} />
@@ -299,11 +329,24 @@ const RiderEnrollmentForm = () => {
         <div className="flex justify-end">
           <button
             type="submit"
-            className="bg-[#0073E6] hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-xl shadow-md flex items-center transition-all"
+            disabled={load}
+            className="bg-[#0073E6] cursor-pointer hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-3 px-8 rounded-xl shadow-md flex items-center transition-all"
           >
-            <span className="mr-2">⊙</span> Submit Rider Enrollment
+            {load ? (
+              <span className="flex items-center gap-2">
+                <span className="animate-spin">⏳</span>
+                Loading...
+              </span>
+            ) : (
+              <>
+                <span className="mr-2">⊙</span>
+                Submit Rider Enrollment
+              </>
+            )}
           </button>
         </div>
+
+
       </form>
     </div>
   );

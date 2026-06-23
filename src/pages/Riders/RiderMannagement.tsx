@@ -41,7 +41,7 @@ const RiderManagement: React.FC = () => {
 
 
 
-    const [status, setStatus] = useState("All Status");
+    const [status, setStatus] = useState("");
     const [searchTerm, setSearchTerm] = useState("");
     const [page, setPage] = useState(1)
     const [finalSearch, setFinalSarch] = useState<string>('')
@@ -220,7 +220,7 @@ const RiderManagement: React.FC = () => {
 
                                             <td className="px-6 py-4">
                                                 <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded text-gray-600">
-                                                    {rider?.pmiNumber}
+                                                    {rider?.pmiNumber ? rider.pmiNumber : 'Not provide'} 
                                                 </span>
                                             </td>
 

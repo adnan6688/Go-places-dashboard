@@ -49,13 +49,15 @@ export const allRiders = async (limit?: number, search?: string, status?: string
             params.search = search
         }
         if (status) {
+           
             params.status = status
         }
         if (riderType) {
-
             params.riderType = riderType
 
         }
+
+        console.log(params)
         const data = await axiosInstance.get(`/admin/riders`, { params })
 
         return {

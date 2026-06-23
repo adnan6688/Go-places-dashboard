@@ -6,6 +6,7 @@ import RiderEnrollmentForm from "./RiderEnrollmentForm";
 import DriverRegistration from "./DriverRegistration";
 
 export default function Enrollments() {
+
   const [activeTab, setActiveTab] = useState<'rider' | 'driver'>('rider');
 
   const { title, subtitle } = useDashboardTitle();
@@ -57,14 +58,14 @@ export default function Enrollments() {
         <div className="mt-8 transition-opacity duration-300">
           {activeTab === 'rider' ? (
             <div className="animate-in fade-in slide-in-from-bottom-2">
-            
 
-            <RiderEnrollmentForm></RiderEnrollmentForm>
+
+              <RiderEnrollmentForm></RiderEnrollmentForm>
             </div>
           ) : (
             <div className="animate-in fade-in slide-in-from-bottom-2">
-             
-             <DriverRegistration></DriverRegistration>
+
+              <DriverRegistration></DriverRegistration>
             </div>
           )}
         </div>

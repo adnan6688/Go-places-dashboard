@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { SubmitHandler } from "react-hook-form";
 import { UploadCloud, Calendar } from 'lucide-react';
+import { driverEnrollMent } from './enrollment';
+import { ToastMessage } from '../../components/ToastMessage';
 
 // Define the shape of our form data
 type FormInputs = {
@@ -20,7 +22,7 @@ type FormInputs = {
     vehicleColor: string;
     vehicleCategory: string;
     seatCount: number;
-    email : string;
+    email: string;
 };
 
 interface InputFieldProps {
@@ -36,9 +38,7 @@ interface InputFieldProps {
 }
 
 // Reusable Input Component
-const InputField: React.FC<InputFieldProps> = ({
-    label, name, placeholder, type = "text", required = true, register, error, options
-}) => (
+const InputField: React.FC<InputFieldProps> = ({ label, name, placeholder, type = "text", required = true, register, error, options }) => (
     <div className="flex flex-col gap-1 w-full">
         <label className="text-sm font-semibold text-gray-700">{label}</label>
         <div className="relative">
@@ -81,12 +81,9 @@ const InputField: React.FC<InputFieldProps> = ({
 );
 
 const DriverRegistration: React.FC = () => {
-    const {
-        register,
-        handleSubmit,
-        formState: { errors },
-    } = useForm<FormInputs>();
+    const { register, handleSubmit, formState: { errors }, } = useForm<FormInputs>();
 
+    const [load, setLoad] = useState<boolean>(false)
     const [files, setFiles] = useState<{ [key: string]: File | null }>({
         licenseCopy: null,
         dotCert: null,
@@ -97,8 +94,12 @@ const DriverRegistration: React.FC = () => {
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, key: string) => {
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
-            const validTypes = ['image/jpeg', 'image/png', 'image/jpg'];
-
+            const validTypes = [
+                'image/jpeg',
+                'image/png',
+                'image/jpg',
+                'application/pdf'
+            ];
             if (validTypes.includes(file.type)) {
                 setFiles((prev) => ({ ...prev, [key]: file }));
             } else {
@@ -107,11 +108,101 @@ const DriverRegistration: React.FC = () => {
         }
     };
 
-    const onSubmit: SubmitHandler<FormInputs> = (data) => {
+    const onSubmit: SubmitHandler<FormInputs> = async (data) => {
         // You can also add validation here to ensure 'files' aren't null if needed
-        const finalData = { ...data, documents: files };
+        setLoad(true)
+        const finalData = { ...data };
+
         console.log("Form Data:", finalData);
-        alert("Form submitted! Check console for details.");
+        const { email, fullName, phone, licensePlate, dotExpiration, address, cityStateZip, dob: dateOfBirth, licenseNumber, issuingState, insuranceExpiration: autoInsuranceExpiration, vehicleMakeModel, vehicleYear, vehicleColor, vehicleCategory, seatCount } = finalData
+
+
+        const { dotCert, insuranceProof, licenseCopy, registration } = files
+
+
+        const finalObj = {
+            email,
+            fullName,
+            phone,
+            address,
+            cityStateZip,
+            dateOfBirth,
+            seatCount,
+            generalDocument: licenseCopy,
+            drivingRecord: dotCert,
+            generalTraining: insuranceProof,
+            mndotTraining: registration,
+            vehicle: {
+                model: vehicleMakeModel,
+                color: vehicleColor,
+                licensePlate: licensePlate,
+                category: vehicleCategory,
+                year: vehicleYear
+            },
+            licensing: {
+                licenseNumber: licenseNumber,
+                issuingState,
+                autoInsuranceExpiration,
+                dotMedicalCardExpiration: dotExpiration
+            }
+        }
+
+        const formData = new FormData();
+
+        formData.append("email", finalObj?.email);
+        formData.append("fullName", finalObj?.fullName);
+        formData.append("phone", finalObj?.phone);
+        formData.append("address", finalObj?.address);
+        formData.append("cityStateZip", finalObj?.cityStateZip);
+        formData.append("dateOfBirth", finalObj?.dateOfBirth);
+        formData.append("seatCount", finalObj?.seatCount.toString());
+
+        // files
+        formData.append("generalDocument", finalObj?.generalDocument as File);
+        formData.append("drivingRecord", finalObj.drivingRecord as File);
+        formData.append("generalTraining", finalObj.generalTraining as File);
+        formData.append("mndotTraining", finalObj.mndotTraining as File);
+
+        // vehicle object → stringify
+        formData.append(
+            "vehicle",
+            JSON.stringify({
+                model: vehicleMakeModel,
+                color: vehicleColor,
+                licensePlate,
+                category: vehicleCategory,
+                year: vehicleYear,
+            })
+        );
+
+        // licensing object → stringify
+        formData.append("licensing",
+            JSON.stringify({
+                licenseNumber,
+                issuingState,
+                autoInsuranceExpiration,
+                dotMedicalCardExpiration: dotExpiration,
+            })
+        );
+
+        try {
+            const result = await driverEnrollMent(formData)
+            if (result?.success) {
+                const msg = result.message
+                ToastMessage('success', msg)
+            }
+        } catch (err : any){
+      
+            const message = err.message
+            ToastMessage('error' ,message)
+        }
+        finally {
+            setLoad(false)
+        }
+
+
+
+
     };
 
     return (
@@ -123,11 +214,14 @@ const DriverRegistration: React.FC = () => {
                     <h2 className="text-lg font-bold text-gray-800">1. Personal Information</h2>
                     <p className="text-xs text-gray-500 mb-4">Driver's personal details</p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="md:col-span-2">
+                        <div className="md:col-span-1">
                             <InputField label="Full Name" name="fullName" placeholder="Enter full name" register={register} error={errors.fullName?.message} />
+                            <InputField label="Driver Email" name="email" placeholder="Enter driver email" register={register} error={errors.fullName?.message} />
                         </div>
-                        <InputField label="Date of Birth" name="dob" type="date" register={register} error={errors.dob?.message} />
-                        <InputField label="Phone Number" name="phone" placeholder="(555) 000-0000" register={register} error={errors.phone?.message} />
+                        <div className='md:columns-1 '>
+                            <InputField label="Date of Birth" name="dob" type="date" register={register} error={errors.dob?.message} />
+                            <InputField label="Phone Number" name="phone" placeholder="(555) 000-0000" register={register} error={errors.phone?.message} />
+                        </div>
                         <div className="md:col-span-2">
                             <InputField label="Residential Address" name="address" placeholder="Street address" register={register} error={errors.address?.message} />
                         </div>
@@ -153,10 +247,10 @@ const DriverRegistration: React.FC = () => {
                     <h2 className="text-lg font-bold text-gray-800">3. Document Upload Checklist</h2>
                     <div className="space-y-3 mt-4">
                         {[
-                            { id: 'licenseCopy', label: "Driver's License Copy (Front & Back)" },
-                            { id: 'dotCert', label: "DOT Medical Examiner's Certificate" },
-                            { id: 'insuranceProof', label: "Proof of Insurance / Policy Declaration Page" },
-                            { id: 'registration', label: "Vehicle Registration" },
+                            { id: 'licenseCopy', label: "General Document" },
+                            { id: 'dotCert', label: "Driving Record" },
+                            { id: 'insuranceProof', label: "General Training" },
+                            { id: 'registration', label: "MnDOT Training" },
                         ].map((doc) => (
                             <div key={doc.id} className="flex items-center justify-between p-3 border border-gray-100 rounded-lg bg-gray-50">
                                 <div className="flex items-center gap-3">
@@ -166,81 +260,83 @@ const DriverRegistration: React.FC = () => {
                                 <label className="flex items-center gap-2 cursor-pointer bg-white px-4 py-1.5 border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-100 transition-colors">
                                     <UploadCloud className="w-4 h-4 text-gray-500" />
                                     {files[doc.id] ? "Uploaded" : "Upload"}
-                                    <input type="file" accept=".jpg,.jpeg,.png" className="hidden" onChange={(e) => handleFileChange(e, doc.id)} />
+                                    <input type="file" accept=".jpg,.jpeg,.png,.pdf" className="hidden" onChange={(e) => handleFileChange(e, doc.id)} />
                                 </label>
                             </div>
                         ))}
                     </div>
                 </section>
 
-                {/* Section 4: Vehicle Information */}
-            {/* Section 4: Vehicle Information */}
-<section className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-  <div className="flex items-center gap-2 mb-1">
-    <h2 className="text-lg font-bold text-gray-800">4. Vehicle Information</h2>
-  </div>
-  <p className="text-xs text-gray-500 mb-4">Details of the driver's vehicle</p>
 
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-    <InputField 
-      label="Make / Model" 
-      name="vehicleMakeModel" 
-      placeholder="e.g. Toyota Camry" 
-      register={register} 
-      error={errors.vehicleMakeModel?.message} 
-    />
-    
-    <InputField 
-      label="Category" 
-      name="vehicleCategory" 
-      type="select" 
-      options={["Sedan", "SUV", "Truck", "Van", "Luxury", "Hatchback"]} 
-      register={register} 
-      error={errors.vehicleCategory?.message} 
-    />
+                <section className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+                    <div className="flex items-center gap-2 mb-1">
+                        <h2 className="text-lg font-bold text-gray-800">4. Vehicle Information</h2>
+                    </div>
+                    <p className="text-xs text-gray-500 mb-4">Details of the driver's vehicle</p>
 
-    <InputField 
-      label="Year" 
-      name="vehicleYear" 
-      placeholder="2024" 
-      register={register} 
-      error={errors.vehicleYear?.message} 
-    />
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+                        <InputField
+                            label="Make / Model"
+                            name="vehicleMakeModel"
+                            placeholder="e.g. Toyota Camry"
+                            register={register}
+                            error={errors.vehicleMakeModel?.message}
+                        />
 
-    <InputField 
-      label="License Plate Number" 
-      name="licensePlate" 
-      placeholder="ABC-1234" 
-      register={register} 
-      error={errors.licensePlate?.message} 
-    />
+                        <InputField
+                            label="Category"
+                            name="vehicleCategory"
+                            type="select"
+                            options={["sedan", "suv", "minivan", "wheelchair_van"]}
+                            register={register}
+                            error={errors.vehicleCategory?.message}
+                        />
 
-    <InputField 
-      label="Vehicle Color" 
-      name="vehicleColor" 
-      placeholder="Color" 
-      register={register} 
-      error={errors.vehicleColor?.message} 
-    />
+                        <InputField
+                            label="Year"
+                            name="vehicleYear"
+                            placeholder="2024"
+                            register={register}
+                            error={errors.vehicleYear?.message}
+                        />
 
-    <InputField 
-      label="Total Seat Count" 
-      name="seatCount" 
-      type="number" 
-      placeholder="e.g. 5" 
-      register={register} 
-      error={errors.seatCount?.message} 
-    />
-  </div>
-</section>
+                        <InputField
+                            label="License Plate Number"
+                            name="licensePlate"
+                            placeholder="ABC-1234"
+                            register={register}
+                            error={errors.licensePlate?.message}
+                        />
+
+                        <InputField
+                            label="Vehicle Color"
+                            name="vehicleColor"
+                            placeholder="Color"
+                            register={register}
+                            error={errors.vehicleColor?.message}
+                        />
+
+                        <InputField
+                            label="Total Seat Count"
+                            name="seatCount"
+                            type="number"
+                            placeholder="e.g. 5"
+                            register={register}
+                            error={errors.seatCount?.message}
+                        />
+                    </div>
+                </section>
 
                 {/* Submit Button */}
                 <div className="flex justify-end pt-4">
                     <button
                         type="submit"
-                        className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-12 rounded-lg transition-all shadow-md active:scale-[0.98]"
+                        disabled={load}
+                        className="w-full  disabled:cursor-not-allowed disabled:bg-gray-400 cursor-pointer md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-12 rounded-lg transition-all shadow-md active:scale-[0.98]"
                     >
-                        Submit Driver Registration
+                        {
+                            load ? "Creating Driver..." : "Submit Driver Registration"
+                        }
                     </button>
                 </div>
             </form>
