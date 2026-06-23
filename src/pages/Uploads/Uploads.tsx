@@ -31,7 +31,7 @@ export default function Uploads() {
               : 'text-slate-500 hover:text-slate-700'
               }`}
           >
-                <Car size={20} strokeWidth={activeTab === 'driver' ? 2 : 1.5} />
+            <Car size={20} strokeWidth={activeTab === 'driver' ? 2 : 1.5} />
             <span className={`text-sm font-semibold `}>
               Driver Uploads
             </span>
@@ -45,8 +45,8 @@ export default function Uploads() {
               : 'text-slate-500 hover:text-slate-700'
               }`}
           >
-       
-             <UserPlus size={20} strokeWidth={activeTab === 'rider' ? 2 : 1.5} />
+
+            <UserPlus size={20} strokeWidth={activeTab === 'rider' ? 2 : 1.5} />
             <span className={`text-sm font-semibold `}>
               Rider Uploads
             </span>
@@ -64,7 +64,7 @@ export default function Uploads() {
           ) : (
             <div className="animate-in fade-in slide-in-from-bottom-2">
 
-           <DocumentUploadForm type={'Rider'}></DocumentUploadForm>
+              <DocumentUploadForm type={'Rider'}></DocumentUploadForm>
             </div>
           )}
         </div>
