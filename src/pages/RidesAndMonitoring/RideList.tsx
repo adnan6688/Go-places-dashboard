@@ -159,7 +159,7 @@ const RideList = () => {
                                     </td>
                                     <td className="px-6 py-4 text-gray-400 whitespace-nowrap text-xs">{ride.dateTime}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <Link to={`/ridesandmonitoring/monitorDetails/:id`}>
+                                        <Link to={`/dashboard/ridesandmonitoring/monitorDetails/:id`}>
                                             <button className="inline-flex items-center px-4 py-2 border border-transparent text-xs font-semibold rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 shadow-sm">
                                                 View Details
                                             </button>

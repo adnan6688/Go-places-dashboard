@@ -14,7 +14,6 @@ import Notifications from "../pages/Notifications/Notifications";
 import DriverDetails from "../pages/Drivers/DriverDetails";
 import Payments from "../pages/Payments/Payments";
 import Reports from "../pages/Reports/Reports";
-import Rider from "../pages/Riders/Rider";
 import RiderDetails from "../pages/Riders/RiderDetails";
 import MonitorDteails from "../pages/RidesAndMonitoring/MonitorDteails";
 import RidesAndMonitoring from "../pages/RidesAndMonitoring/RidesAndMonitoring";
@@ -27,6 +26,7 @@ import Login from "../components/Login";
 import PrivetRoutes from "./PrivetRoute";
 import AuthPrivetRoute from "./AuthPrivetRoute";
 import NotFound from "../components/NotFound";
+import RiderPage from "../pages/Riders/RiderPage";
 
 
 export const router = createBrowserRouter([
@@ -50,7 +50,7 @@ export const router = createBrowserRouter([
 
             {
                 path: "riders",
-                Component: Rider,
+                Component: RiderPage,
             },
             {
                 path: "riders/details/:id",

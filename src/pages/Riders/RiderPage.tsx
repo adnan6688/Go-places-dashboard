@@ -2,7 +2,7 @@ import DashboardHeading from "../../components/DashboardHeading";
 import { useDashboardTitle } from "../../Config/sendLocation";
 import RiderMannagement from "./RiderMannagement";
 
-export default function Rider() {
+export default function RiderPage() {
 
   const { title, subtitle } = useDashboardTitle();
 
