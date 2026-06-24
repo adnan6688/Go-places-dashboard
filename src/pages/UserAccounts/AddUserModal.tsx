@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Eye, EyeOff, X } from "lucide-react";
 import { createStaff } from './staff';
 import { ToastMessage } from '../../components/ToastMessage';
+import axiosInstance from '../../baseUrl/baseurl';
 
 const isValidPassword = (val: string) => {
   const regex =
@@ -14,6 +15,7 @@ interface UserData {
   name?: string;
   email?: string;
   role?: 'Admin' | 'Staff' | 'Rider' | 'Driver';
+  status?: string
 }
 
 interface AddUserModalProps {
@@ -40,8 +42,13 @@ export const AddUserModal: React.FC<AddUserModalProps> = ({ onClose, mode, initi
   const [password, setPassword] = useState<string>("")
   const [confirmPassword, setConfirmPassword] = useState<string>("")
 
+  const [active, setIsActive] = useState(false);
 
-
+  useEffect(() => {
+    if (initialData?.status) {
+      setIsActive(initialData.status === "active");
+    }
+  }, [initialData]);
   const addStaff = async () => {
     setErrros('')
     setSuccessMsg('')
@@ -94,9 +101,21 @@ export const AddUserModal: React.FC<AddUserModalProps> = ({ onClose, mode, initi
 
   }
 
-  const editStaff = () => {
-    console.log("edit")
-    console.log(editStaffId)
+  const editStaff = async () => {
+
+    try {
+      const res = await axiosInstance.patch(`/admin/staffs/update/${editStaffId}`, { fullName: name ? name : initialData?.name, status: active ? 'active' : 'inactive' })
+
+      if (res?.data?.success) {
+        ToastMessage('success', res?.data?.message)
+        refetch()
+        onClose()
+      }
+    }
+    catch (err) {
+      //
+      console.log(err)
+    }
   }
 
 
@@ -187,6 +206,30 @@ export const AddUserModal: React.FC<AddUserModalProps> = ({ onClose, mode, initi
           }
           {
             successMsg && <p className='text-green-500'>{successMsg}</p>
+          }
+
+
+
+          {
+            isEdit && <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsActive(!active)}
+              className={`w-14 h-7 flex cursor-pointer items-center rounded-full p-1 transition-all duration-300 ${active ? "bg-green-500" : "bg-red-500"
+                }`}
+            >
+              <div
+                className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 ${active ? "translate-x-7" : "translate-x-0"
+                  }`}
+              />
+            </button>
+
+            <span
+              className={`font-medium ${active ? "text-green-600" : "text-red-600"
+                }`}
+            >
+              {active ? "Active" : "Inactive"}
+            </span>
+          </div>
           }
 
           {/* Action Buttons */}
