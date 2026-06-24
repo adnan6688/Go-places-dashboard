@@ -1,6 +1,14 @@
 import React, { useState } from 'react';
-import { X } from "lucide-react";
+import { Eye, EyeOff, X } from "lucide-react";
+import { createStaff } from './staff';
+import { ToastMessage } from '../../components/ToastMessage';
 
+const isValidPassword = (val: string) => {
+  const regex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%&*])[A-Za-z\d!@#$%&*]{8,}$/;
+
+  return regex.test(val);
+};
 
 interface UserData {
   name?: string;
@@ -12,11 +20,18 @@ interface AddUserModalProps {
   onClose: () => void;
   mode: string;
   initialData?: UserData;
+  refetch: () => void;
+  editStaffId? : string
 }
 
-export const AddUserModal: React.FC<AddUserModalProps> = ({ onClose, mode, initialData }) => {
+export const AddUserModal: React.FC<AddUserModalProps> = ({ onClose, mode, initialData, refetch  , editStaffId  }) => {
 
   const isEdit = mode === 'edit';
+
+
+  const [successMsg, setSuccessMsg] = useState<string>("")
+  const [load, setLoad] = useState<boolean>(false)
+  const [showPass, setShowPass] = useState<boolean>(false)
 
   const [errors, setErrros] = useState<string>("")
 
@@ -26,16 +41,63 @@ export const AddUserModal: React.FC<AddUserModalProps> = ({ onClose, mode, initi
   const [confirmPassword, setConfirmPassword] = useState<string>("")
 
 
-  const addStaff = async () => {
 
-    console.log(name, email, password, confirmPassword)
+  const addStaff = async () => {
+    setErrros('')
+    setSuccessMsg('')
+    setLoad(true)
+
+    if (password.length < 8) {
+      setErrros("Password must be at least 8 characters");
+      setLoad(false)
+      return;
+    }
+
+
+    if (!isValidPassword(password)) {
+      setErrros("Must be 8+ chars, include A, a, 1, and !@#$%&*")
+      setLoad(false)
+      return
+    }
+
+
     if (password != confirmPassword) {
       setErrros("Password Doestn't match!")
+      setLoad(false)
+      return
     }
+
+
+    try {
+      const add = await createStaff(name, email, password);
+      if (add?.data?.success) {
+        refetch()
+        setSuccessMsg(add?.data?.message)
+      }
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Something went wrong";
+
+
+      ToastMessage("error", msg);
+    }
+    finally {
+      setLoad(false)
+      // onClose()
+      setName('')
+      setPassword('')
+      setEmail('')
+    }
+
 
   }
 
-
+  const editStaff = () => {
+    console.log("edit")
+    console.log(editStaffId)
+  }
 
 
   return (
@@ -85,15 +147,25 @@ export const AddUserModal: React.FC<AddUserModalProps> = ({ onClose, mode, initi
 
           {!isEdit && (
             <>
-              <div className="space-y-1.5">
+              <div className="space-y-1.5 relative">
                 <label className="text-sm font-bold text-gray-700">Password</label>
+
                 <input
-                  type="password"
+                  type={showPass ? "text" : "password"}
                   required
+                  value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all"
+                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all pr-10"
                 />
+
+                {/* icon toggle */}
+                <div
+                  className="absolute right-3 top-9 cursor-pointer text-gray-500"
+                  onClick={() => setShowPass((prev) => !prev)}
+                >
+                  {showPass ? <EyeOff size={20} /> : <Eye size={20} />}
+                </div>
               </div>
 
               <div className="space-y-1.5">
@@ -111,6 +183,9 @@ export const AddUserModal: React.FC<AddUserModalProps> = ({ onClose, mode, initi
           {
             errors && <p className='text-red-500'>{errors}</p>
           }
+          {
+            successMsg && <p className='text-green-500'>{successMsg}</p>
+          }
 
           {/* Action Buttons */}
           <div className="pt-4 flex flex-col-reverse sm:flex-row gap-3">
@@ -123,10 +198,13 @@ export const AddUserModal: React.FC<AddUserModalProps> = ({ onClose, mode, initi
             </button>
             <button
               type="submit"
-              onClick={addStaff}
-              className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-semibold shadow-md shadow-blue-200 transition-all active:scale-95"
+              onClick={() => {
+                isEdit ? editStaff() : addStaff()
+              }}
+              disabled={load}
+              className="flex-1 disabled:bg-gray-500 disabled:cursor-not-allowed cursor-pointer px-4 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-semibold shadow-md shadow-blue-200 transition-all active:scale-95"
             >
-              {isEdit ? 'Update Changes' : 'Create User'}
+              {isEdit ? 'Update Changes' : load ? 'Staff crateing..' : 'Create User'}
             </button>
           </div>
         </form>

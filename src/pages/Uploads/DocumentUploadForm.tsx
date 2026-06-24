@@ -55,7 +55,7 @@ const DocumentUploadForm = ({ type }: props) => {
     let page = 1; let allData: any[] = []; let totalPages = 1;
     do {
       const res = await axiosInstance.get(`/admin/riders?page=${page}&limit=10`);
-      console.log("result riders", res)
+  
       const data = res?.data?.data?.riders;
       totalPages = res.data?.data?.pagination?.totalPages;
       allData = [...allData, ...data];
@@ -138,13 +138,13 @@ const DocumentUploadForm = ({ type }: props) => {
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    console.log(riderId)
+  
     setLoad(true)
     e.preventDefault();
 
 
     const selectedFiles = Object.values(files).filter(Boolean);
-    console.log(selectedFiles)
+
 
     const newErrors: { [key: string]: string } = {};
 
@@ -154,6 +154,7 @@ const DocumentUploadForm = ({ type }: props) => {
     };
     if (selectedFiles.length === 0)
 
+     
       newErrors.file = "Please upload at least one document";
 
     if (Object.keys(newErrors).length > 0) {
@@ -168,6 +169,7 @@ const DocumentUploadForm = ({ type }: props) => {
     const generalTraining = files['General Training'] ?? null
     const mndotTraining = files['MnDOT Training'] ?? null
     const drivingRecord = files['Driving Record'] ?? null
+    const enrollmentAgreement = files['Enrollment Agreement'] ?? null
 
 
 
@@ -185,6 +187,9 @@ const DocumentUploadForm = ({ type }: props) => {
     }
 
 
+    if(enrollmentAgreement){
+      formData.append('enrollmentAgreement',enrollmentAgreement)
+    }
     if (generalDocument) {
       formData.append("generalDocument", generalDocument);
     }
@@ -200,7 +205,7 @@ const DocumentUploadForm = ({ type }: props) => {
     if (drivingRecord) {
       formData.append("drivingRecord", drivingRecord);
     }
-    console.log("fomr-data", formData)
+   
 
 
     const url = type === "Driver"

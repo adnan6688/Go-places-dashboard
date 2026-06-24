@@ -1,61 +1,66 @@
 import { Calendar, ChevronDown, Edit2, Filter, Mail, Search, UserPlus } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AddUserModal } from './AddUserModal';
 import { useQuery } from '@tanstack/react-query';
 import { staffApi } from './staff';
+import Pagination from '../../components/Pagination';
+import SmallLoading from '../../Loading/SmallLoading';
+import { useDebounce } from '../../utils/debounce';
 
 // Types
-type Role = 'Admin' | 'Staff' | 'Rider' | 'Driver';
+type Role = 'staff' | 'admin'
 type Status = 'active' | 'inactive';
 
-interface User {
-    id: number;
-    name: string;
+interface TStaff {
+    _id: string;
+    fullName: string;
     email: string;
     role: Role;
     status: Status;
-    lastLogin: string;
+    createdAt: string;
+    updatedAt: string;
+    isFirstLogin: boolean;
+    isDeleted: boolean;
+    createdBy: string
 }
 
 const UserManagement: React.FC = () => {
 
-
-
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modaltype, setModaltype] = useState<string>('')
+    const [currentPage, setCurrentPage] = useState<number>(1)
     const [search, setSearch] = useState('');
+    const [finalSearch, setFinalSearch] = useState<string>('')
+    const [status, setStatus] = useState<string | ''>('');
 
-    const {data} = useQuery({
-        queryKey : ['staff-result'],
-        queryFn : staffApi
+    const [editStaffId,setEditStaffId] = useState<string>("")
+
+
+    const debounce = useDebounce(search, 500)
+
+    useEffect(() => {
+        setFinalSearch(debounce);
+    }, [debounce]);
+
+    const { data, isLoading, refetch } = useQuery({
+        queryKey: ['staff-result', finalSearch, status],
+        queryFn: () => staffApi(finalSearch, status)
     })
 
-    const [status, setStatus] = useState<string | 'All'>('All');
 
-    const [users] = useState<User[]>([
-        { id: 1, name: 'Admin Super', email: 'admin@transport.com', role: 'Staff', status: 'active', lastLogin: '2024-03-15 08:30 AM' },
-        { id: 2, name: 'John Operations', email: 'j.ops@transport.com', role: 'Staff', status: 'active', lastLogin: '2024-03-15 09:15 AM' },
-        { id: 3, name: 'Sarah Finance', email: 's.finance@transport.com', role: 'Staff', status: 'active', lastLogin: '2024-03-14 04:00 PM' },
-        { id: 4, name: 'Mike Support', email: 'm.support@transport.com', role: 'Staff', status: 'inactive', lastLogin: '2024-03-10 11:00 AM' },
-        { id: 5, name: 'Ariful Islam', email: 'ariful.rider@transport.com', role: 'Staff', status: 'active', lastLogin: '2024-04-18 10:20 AM' },
-        { id: 6, name: 'Tanvir Ahmed', email: 'tanvir.driver@transport.com', role: 'Staff', status: 'active', lastLogin: '2024-04-18 07:45 AM' },
-        { id: 7, name: 'Fatima Zohra', email: 'fatima.staff@transport.com', role: 'Staff', status: 'active', lastLogin: '2024-04-17 02:30 PM' },
-        { id: 8, name: 'Rakib Hossain', email: 'rakib.admin@transport.com', role: 'Staff', status: 'active', lastLogin: '2024-04-18 11:00 AM' },
-        { id: 9, name: 'Kamrul Hasan', email: 'kamrul.driver@transport.com', role: 'Staff', status: 'inactive', lastLogin: '2024-04-12 09:15 AM' },
-        { id: 10, name: 'Sajid Afridi', email: 'sajid.rider@transport.com', role: 'Staff', status: 'active', lastLogin: '2024-04-18 08:50 AM' },
-        { id: 11, name: 'Mehedi Hasan', email: 'mehedi.staff@transport.com', role: 'Staff', status: 'inactive', lastLogin: '2024-04-05 11:20 AM' },
-        { id: 12, name: 'Nusrat Jahan', email: 'nusrat.rider@transport.com', role: 'Staff', status: 'active', lastLogin: '2024-04-17 06:10 PM' },
-        { id: 13, name: 'Abdur Rahman', email: 'abdur.driver@transport.com', role: 'Staff', status: 'active', lastLogin: '2024-04-18 05:30 AM' },
-        { id: 14, name: 'Lutfur Rahman', email: 'lutfur.admin@transport.com', role: 'Staff', status: 'active', lastLogin: '2024-04-18 12:45 PM' },
-    ]);
+    const onPrev = () => {
+        setCurrentPage(currentPage - 1)
+    }
 
-
+    const onNext = () => {
+        setCurrentPage(currentPage + 1)
+    }
 
 
     const getRoleBadgeColor = (role: Role) => {
         const colors = {
-            Admin: 'bg-blue-50 text-blue-600 border-blue-100',
-            Staff: 'bg-purple-50 text-purple-600 border-purple-100',
+            admin: 'bg-blue-50 text-blue-600 border-blue-100',
+            staff: 'bg-purple-50 text-purple-600 border-purple-100',
             Rider: 'bg-orange-50 text-orange-600 border-orange-100',
             Driver: 'bg-teal-50 text-teal-600 border-teal-100',
         };
@@ -66,6 +71,7 @@ const UserManagement: React.FC = () => {
         setIsModalOpen(false)
         setModaltype('')
     }
+
 
 
     return (
@@ -83,7 +89,7 @@ const UserManagement: React.FC = () => {
                             setModaltype('add')
                             setIsModalOpen(true)
                         }}
-                        className="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl transition-all active:scale-95 font-semibold shadow-sm"
+                        className="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl transition-all active:scale-95 font-semibold shadow"
                     >
                         <UserPlus size={19} />
                         <span>Add Staff</span>
@@ -91,7 +97,7 @@ const UserManagement: React.FC = () => {
                 </div>
 
 
-                <div className="w-full p-4 mb-4 md:p-6 bg-white shadow-xl shadow-blue-50/50 rounded-3xl border border-gray-100">
+                <div className="w-full p-4 mb-4 md:p-6 bg-white shadow shadow-blue-50/50 rounded-3xl border border-gray-100">
                     <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
 
 
@@ -116,7 +122,7 @@ const UserManagement: React.FC = () => {
                                 <span className="text-sm font-medium">Filters:</span>
                             </div>
 
-                          
+
 
                             {/* --- Unique Status Filter --- */}
                             <div className="relative w-[48%] md:w-40 group">
@@ -125,7 +131,7 @@ const UserManagement: React.FC = () => {
                                     onChange={(e) => setStatus(e.target.value)}
                                     className="appearance-none w-full pl-10 pr-10 py-3 bg-gray-50 border border-transparent rounded-2xl text-sm font-semibold text-gray-700 focus:ring-4 focus:ring-green-50 transition-all outline-none cursor-pointer group-hover:bg-gray-100"
                                 >
-                                    <option value="All">All Status</option>
+                                    <option value="">All Status</option>
                                     <option value="active">Active</option>
                                     <option value="inactive">Inactive</option>
                                 </select>
@@ -135,7 +141,7 @@ const UserManagement: React.FC = () => {
 
 
                             <button
-                                onClick={() => { setSearch('');  setStatus('All'); }}
+                                onClick={() => { setSearch(''); setStatus(''); }}
                                 className="w-full md:w-auto px-5 py-3 text-sm font-bold text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all"
                             >
                                 Reset
@@ -149,11 +155,11 @@ const UserManagement: React.FC = () => {
 
                 {/* --- MOBILE VIEW: CARD LAYOUT (Visible only on small screens) --- */}
                 <div className="grid grid-cols-1 gap-4 sm:hidden">
-                    {users.map((user) => (
-                        <div key={user.id} className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm space-y-4">
+                    {data?.data?.data?.map((user: TStaff) => (
+                        <div key={user._id} className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm space-y-4">
                             <div className="flex justify-between items-start">
                                 <div>
-                                    <h3 className="text-lg font-bold text-gray-900">{user.name}</h3>
+                                    <h3 className="text-lg font-bold text-gray-900">{user?.fullName}</h3>
                                     <div className="flex items-center gap-1.5 text-gray-500 text-sm mt-1">
                                         <Mail size={14} />
                                         {user.email}
@@ -181,31 +187,40 @@ const UserManagement: React.FC = () => {
 
                             <div className="flex items-center gap-2 text-xs text-gray-400 bg-gray-50 p-2 rounded-lg">
                                 <Calendar size={14} />
-                                <span>Last login: {user.lastLogin}</span>
+                                <span>CreatedAt: {new Date(user?.createdAt).toLocaleString()}</span>
                             </div>
                         </div>
                     ))}
                 </div>
 
                 {/* --- TABLE VIEW: DESKTOP LAYOUT (Hidden on small screens) --- */}
-                <div className="hidden sm:block bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                <div className="hidden sm:block bg-white rounded-2xl shadow border border-gray-200 overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left">
                             <thead>
-                                <tr className="bg-gray-50 text-gray-500 text-[11px] uppercase tracking-widest font-bold">
+                                <tr className="bg-gray-50 text-gray-500 text-sm   font-bold">
                                     <th className="px-6 py-4">Name</th>
                                     <th className="px-6 py-4">Email</th>
                                     <th className="px-6 py-4">Role</th>
                                     <th className="px-6 py-4">Status</th>
-                                    <th className="px-6 py-4">Last Login</th>
+                                    <th className="px-6 py-4">CreatedAt</th>
+                                  <th className="px-6 py-4 text-center">Availability</th>
                                     <th className="px-6 py-4 text-center">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100">
-                                {users.map((user) => (
-                                    <tr key={user.id} className="group hover:bg-blue-50/30 transition-colors">
-                                        <td className="px-6 py-4 text-sm font-semibold text-gray-800">{user.name}</td>
-                                        <td className="px-6 py-4 text-sm text-gray-500">{user.email}</td>
+                                {isLoading ? <tr>
+                                    <td colSpan={999} className="text-center py-10">
+                                        <SmallLoading message="Staff Loading.." />
+                                    </td>
+                                </tr> : !data?.data?.data?.length ? <tr className=''>
+                                    <td colSpan={5} className="text-center text-gray-600 py-10">
+                                        Staff not found
+                                    </td>
+                                </tr> : data?.data?.data.map((user: TStaff) => (
+                                    <tr key={user._id} className="group hover:bg-blue-50/30 transition-colors">
+                                        <td className="px-6 py-4 text-sm font-semibold text-gray-800">{user?.fullName}</td>
+                                        <td className="px-6 py-4 text-sm text-gray-500">{user?.email}</td>
                                         <td className="px-6 py-4">
                                             <span className={`px-3 py-1 rounded-full text-[12px] font-bold border ${getRoleBadgeColor(user.role)}`}>
                                                 {user.role}
@@ -219,13 +234,26 @@ const UserManagement: React.FC = () => {
                                                 </span>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 text-sm text-gray-400 font-medium">{user.lastLogin}</td>
+                                        <td className="px-6 py-4 text-sm text-gray-400 font-medium">
+                                            {new Date(user.createdAt).toLocaleString()}
+                                        </td>
+                                      <td className='flex justify-center'>
+                                          <span
+                                            className={`px-2 py-1 rounded-full  text-xs font-medium ${user?.isDeleted
+                                                    ? "bg-gray-200 text-gray-600"
+                                                    : "bg-blue-100 text-blue-600"
+                                                }`}
+                                        >
+                                            { user?.isDeleted ? "Archived" : "On Duty"}
+                                        </span>
+                                      </td>
                                         <td className="px-6 py-4 text-center">
                                             <button onClick={() => {
                                                 setModaltype('edit')
+                                                setEditStaffId(user?._id)
                                                 setIsModalOpen(true)
                                             }} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all">
-                                                <Edit2 size={16} />
+                                                <Edit2  size={16} />
                                             </button>
                                         </td>
                                     </tr>
@@ -236,10 +264,16 @@ const UserManagement: React.FC = () => {
                 </div>
             </div>
 
+
+            <div>
+                <Pagination onNext={onNext} onPrev={onPrev} currentPage={currentPage} totalPages={data?.data?.pagination?.totalPages}></Pagination>
+            </div>
             {isModalOpen && <AddUserModal
                 mode={modaltype}
+                editStaffId={editStaffId}
                 initialData={{ name: "John Doe", email: "john@example.com", role: "Rider" }}
                 onClose={handleClose}
+                refetch={refetch}
             />}
         </div>
     );
