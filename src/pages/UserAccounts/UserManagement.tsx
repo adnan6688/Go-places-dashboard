@@ -33,7 +33,10 @@ const UserManagement: React.FC = () => {
     const [finalSearch, setFinalSearch] = useState<string>('')
     const [status, setStatus] = useState<string | ''>('');
 
-    const [editStaffId,setEditStaffId] = useState<string>("")
+    const [editStaffId, setEditStaffId] = useState<string>("")
+
+    const [editStaffInfo, setEditStaffInfo] = useState<{ name: string, status: string } | {}>({})
+
 
 
     const debounce = useDebounce(search, 500)
@@ -204,7 +207,6 @@ const UserManagement: React.FC = () => {
                                     <th className="px-6 py-4">Role</th>
                                     <th className="px-6 py-4">Status</th>
                                     <th className="px-6 py-4">CreatedAt</th>
-                                  <th className="px-6 py-4 text-center">Availability</th>
                                     <th className="px-6 py-4 text-center">Actions</th>
                                 </tr>
                             </thead>
@@ -237,23 +239,15 @@ const UserManagement: React.FC = () => {
                                         <td className="px-6 py-4 text-sm text-gray-400 font-medium">
                                             {new Date(user.createdAt).toLocaleString()}
                                         </td>
-                                      <td className='flex justify-center'>
-                                          <span
-                                            className={`px-2 py-1 rounded-full  text-xs font-medium ${user?.isDeleted
-                                                    ? "bg-gray-200 text-gray-600"
-                                                    : "bg-blue-100 text-blue-600"
-                                                }`}
-                                        >
-                                            { user?.isDeleted ? "Archived" : "On Duty"}
-                                        </span>
-                                      </td>
+
                                         <td className="px-6 py-4 text-center">
                                             <button onClick={() => {
                                                 setModaltype('edit')
                                                 setEditStaffId(user?._id)
+                                                setEditStaffInfo({ name: user?.fullName, status: user.status })
                                                 setIsModalOpen(true)
                                             }} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all">
-                                                <Edit2  size={16} />
+                                                <Edit2 size={16} />
                                             </button>
                                         </td>
                                     </tr>
@@ -271,7 +265,7 @@ const UserManagement: React.FC = () => {
             {isModalOpen && <AddUserModal
                 mode={modaltype}
                 editStaffId={editStaffId}
-                initialData={{ name: "John Doe", email: "john@example.com", role: "Rider" }}
+                initialData={{ ...editStaffInfo }}
                 onClose={handleClose}
                 refetch={refetch}
             />}

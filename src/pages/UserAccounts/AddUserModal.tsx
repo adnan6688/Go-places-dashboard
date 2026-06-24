@@ -21,10 +21,10 @@ interface AddUserModalProps {
   mode: string;
   initialData?: UserData;
   refetch: () => void;
-  editStaffId? : string
+  editStaffId?: string
 }
 
-export const AddUserModal: React.FC<AddUserModalProps> = ({ onClose, mode, initialData, refetch  , editStaffId  }) => {
+export const AddUserModal: React.FC<AddUserModalProps> = ({ onClose, mode, initialData, refetch, editStaffId }) => {
 
   const isEdit = mode === 'edit';
 
@@ -130,17 +130,19 @@ export const AddUserModal: React.FC<AddUserModalProps> = ({ onClose, mode, initi
           </div>
 
           {/* Email */}
-          <div className="space-y-1.5">
-            <label className="text-sm font-bold text-gray-700">Email Address</label>
-            <input
-              type="email"
-              required
-              onChange={(e) => setEmail(e.target.value)}
-              defaultValue={isEdit && initialData?.email || ''}
-              placeholder="name@company.com"
-              className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all"
-            />
-          </div>
+          {
+            !isEdit && <div className="space-y-1.5">
+              <label className="text-sm font-bold text-gray-700">Email Address</label>
+              <input
+                type="email"
+                required
+                onChange={(e) => setEmail(e.target.value)}
+                defaultValue={isEdit && initialData?.email || ''}
+                placeholder="name@company.com"
+                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all"
+              />
+            </div>
+          }
 
 
 
