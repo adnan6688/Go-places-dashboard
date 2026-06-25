@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../../Hook/useAuth';
-import { updateProfileInformationApi } from './settingApi';
+import { changePassword, updateProfileInformationApi } from './settingApi';
 import { ToastMessage } from '../../components/ToastMessage';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 
 
@@ -11,7 +12,21 @@ export default function Settings() {
   const [fullName, setFullName] = useState<string>("")
   const [phone, setPhone] = useState<string>("")
   const [errors, setErrors] = useState<string>("")
+  const [passError, setPassError] = useState<string>("")
   const [load, setLoad] = useState<boolean>(false)
+
+
+  const [confirmPassword, setConfirmPassword] = useState<string>("")
+  const [newPassword, setNewPassNow] = useState<string>("")
+  const [currentPassword, setCurrentPassword] = useState<string>("")
+
+  const [passLoad, setPassLoad] = useState<boolean>(false)
+
+
+  const [currentPassShow, setCurrentPassShow] = useState<boolean>(false)
+  const [newPasswordShow, setNewPassShow] = useState<boolean>(false)
+
+
 
 
   const { user, refetchUser } = useAuth()
@@ -41,6 +56,47 @@ export default function Settings() {
     }
     finally {
       setLoad(false)
+    }
+
+  }
+
+
+  const updatePassFun = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setPassLoad(true)
+    setPassError("")
+
+    if (currentPassword === newPassword) {
+      setPassError("Current password and new password cannot be the same");
+      setPassLoad(false);
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setPassError("New password and confirm password do not match");
+      setPassLoad(false);
+      return;
+    }
+    try {
+      const result = await changePassword(confirmPassword, newPassword, currentPassword)
+
+      if (result?.data?.success) {
+        ToastMessage('success', result?.data?.message)
+        setConfirmPassword("")
+        setNewPassNow("")
+        setCurrentPassword("")
+      }
+    } catch (err: any) {
+      const message =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        err?.message ||
+        "Something went wrong";
+
+      ToastMessage("error", message);
+    }
+    finally {
+      setPassLoad(false)
     }
 
   }
@@ -142,40 +198,73 @@ export default function Settings() {
             <p className="text-xs text-gray-400">Update your password to keep your account secure.</p>
           </div>
 
-          <form className="p-6 space-y-4 max-w-md">
+          <form onSubmit={updatePassFun} className="p-6 space-y-4 max-w-md">
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-500 uppercase">Current Password</label>
-              <input
-                type="password"
-                required
-                className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                placeholder="••••••••"
+              <label className="text-xs font-semibold text-gray-500 uppercase">
+                Current Password
+              </label>
 
-              />
+              <div className="relative">
+                <input
+                  type={currentPassShow ? "text" : "password"}
+                  required
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  className="w-full p-2 pr-10 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                  placeholder="••••••••"
+                />
+
+                <button
+                  type="button"
+                  onClick={() => setCurrentPassShow(!currentPassShow)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                >
+                  {currentPassShow ? <FaEyeSlash /> : <FaEye />}
+                </button>
+              </div>
             </div>
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-500 uppercase">New Password</label>
-              <input
-                type="password"
-                required
-                className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                placeholder="••••••••"
+              <label className="text-xs font-semibold text-gray-500 uppercase">
+                New Password
+              </label>
 
-              />
+              <div className="relative">
+                <input
+                  type={newPasswordShow ? "text" : "password"}
+                  required
+                  onChange={(e) => setNewPassNow(e.target.value)}
+                  className="w-full p-2 pr-10 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                  placeholder="••••••••"
+                />
+
+                <button
+                  type="button"
+                  onClick={() => setNewPassShow(!newPasswordShow)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                >
+                  {newPasswordShow ? <FaEyeSlash /> : <FaEye />}
+                </button>
+              </div>
             </div>
             <div className="space-y-1">
               <label className="text-xs font-semibold text-gray-500 uppercase">Confirm New Password</label>
               <input
                 type="password"
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 required
                 className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                 placeholder="••••••••"
 
               />
             </div>
+            {
+              passError && <p className='text-red-500'>{passError} </p>
+            }
 
-            <button type="submit" className="bg-gray-800 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-black transition">
-              Update Password
+
+            <button type="submit" className="bg-gray-800 cursor-pointer text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-black transition">
+              {
+                passLoad ? 'Updating...' : 'Update Password'
+              }
             </button>
           </form>
         </div>

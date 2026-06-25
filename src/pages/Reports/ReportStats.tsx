@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query';
 import {
     CheckCircle2,
     MapPin,
@@ -5,37 +6,45 @@ import {
     CarFront,
     Users
 } from 'lucide-react';
+import { reportsSummary } from './reportApi';
 
 const ReportStats = () => {
+
+  const {data} = useQuery({
+    queryKey : ['summary'],
+    queryFn : reportsSummary
+  })
+
+
   const stats = [
     {
       id: 1,
       label: 'Total Riders',
-      value: '248',
+      value: data?.totalRiders,
       icon: <Users className="text-blue-500" size={20} />,
     },
     {
       id: 2,
       label: 'Total Drivers',
-      value: '64',
+      value: data?.totalDrivers,
       icon: <CarFront className="text-indigo-500" size={20} />,
     },
     {
       id: 3,
       label: 'Completed Rides',
-      value: '1,847',
+      value: data?.completedRides,
       icon: <CheckCircle2 className="text-green-500" size={20} />,
     },
     {
       id: 4,
       label: 'Total miles Driven',
-      value: '2950',
+      value: data?.totalMilesDriven,
       icon: <MapPin className="text-orange-500" size={20} />,
     },
     {
       id: 5,
       label: 'Total Trips',
-      value: '3,120', // Example value
+      value: data?.totalTrips, // Example value
       icon: <Route className="text-purple-500" size={20} />,
     },
   ];

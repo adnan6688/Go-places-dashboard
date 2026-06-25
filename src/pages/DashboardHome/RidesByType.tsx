@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import {
   ArcElement,
   Chart as ChartJS,
@@ -5,24 +6,32 @@ import {
   Tooltip,
 } from "chart.js";
 import { Doughnut } from "react-chartjs-2";
+import { RidesTypeAp } from "../Reports/reportApi";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 const RidesByType = () => {
 
-  
+  const { data: typeOfRides } = useQuery({
+    queryKey: ['typeOf'],
+    queryFn: RidesTypeAp
+  });
+
+  // fallback safe data
+  const chartData = typeOfRides || [];
+
+  const labels = chartData.map((item: any) => item.type);
+
+  const values = chartData.map((item: any) => item.count);
+
+  const colors = ["#1d4ed8", "#059669", "#f59e0b", "#9333ea", "#ef4444"];
+
   const data = {
-    labels: ["Medical", "Pharmacy", "Dental", "Mental Health", "Lab"],
+    labels,
     datasets: [
       {
-        data: [892, 342, 215, 198, 200],
-        backgroundColor: [
-          "#1d4ed8", // blue
-          "#059669", // green
-          "#f59e0b", // orange
-          "#9333ea", // purple
-          "#ef4444", // red
-        ],
+        data: values,
+        backgroundColor: colors.slice(0, values.length),
         borderWidth: 0,
         cutout: "65%",
       },
@@ -37,25 +46,18 @@ const RidesByType = () => {
     },
   };
 
-  const items = [
-    { name: "Medical", value: 892, color: "#1d4ed8" },
-    { name: "Pharmacy", value: 342, color: "#059669" },
-    { name: "Dental", value: 215, color: "#f59e0b" },
-    { name: "Mental Health", value: 198, color: "#9333ea" },
-    { name: "Lab", value: 200, color: "#ef4444" },
-  ];
-
   return (
     <div className="bg-white rounded-2xl shadow-sm p-4 sm:p-6 h-full flex flex-col">
 
       {/* Title */}
       <h2 className="text-base sm:text-lg font-semibold text-gray-800 mb-4">
-        Rider's by Type
+        Rides by Type
       </h2>
 
       <div className="flex flex-col">
+
         {/* Chart */}
-        <div className="flex  justify-center mb-6">
+        <div className="flex justify-center mb-6">
           <div className="w-40 h-40 sm:w-52 sm:h-52 md:w-60 md:h-60">
             <Doughnut data={data} options={options} />
           </div>
@@ -63,7 +65,7 @@ const RidesByType = () => {
 
         {/* Legend */}
         <div className="space-y-3 mt-auto">
-          {items.map((item, index) => (
+          {chartData.map((item: any, index: number) => (
             <div
               key={index}
               className="flex items-center justify-between text-xs sm:text-sm"
@@ -71,20 +73,19 @@ const RidesByType = () => {
               <div className="flex items-center gap-2 sm:gap-3">
                 <span
                   className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full"
-                  style={{ backgroundColor: item.color }}
+                  style={{ backgroundColor: colors[index % colors.length] }}
                 ></span>
-                <span className="text-gray-600">{item.name}</span>
+                <span className="text-gray-600">{item.type}</span>
               </div>
 
               <span className="text-gray-800 font-semibold">
-                {item.value}
+                {item.count}
               </span>
             </div>
           ))}
         </div>
+
       </div>
-
-
     </div>
   );
 };

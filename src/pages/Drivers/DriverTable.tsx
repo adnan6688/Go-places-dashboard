@@ -181,7 +181,7 @@ const DriverTable: React.FC = () => {
                             </tr>
                             : driverData?.drivers?.length == 0 ? <tr>
                                 <td colSpan={10} className="py-10">
-                                    <div className="text-center py-10 bg-white rounded-2xl text-black">No drivers found</div>
+                                    <span className="text-center py-10 bg-white rounded-2xl text-black">No drivers found</span>
                                 </td>
                             </tr> : driverData?.drivers?.map((user: TDriver) => (
                                 <tr key={user._id} className="hover:bg-blue-50/40 transition-colors duration-200">

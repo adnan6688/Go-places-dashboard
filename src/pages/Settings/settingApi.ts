@@ -21,3 +21,22 @@ export const updateProfileInformationApi = async (fullName: string, phone: strin
         throw new Error(message)
     }
 }
+
+
+export const changePassword = async (
+  confirmPassword?: string,
+  newPassword?: string,
+  currentPassword?: string
+) => {
+  try {
+    const result = await axiosInstance.post('/auth/change-password', {
+      confirmPassword,
+      newPassword,
+      currentPassword,
+    });
+
+    return result;
+  } catch (err) {
+    throw err; 
+  }
+};

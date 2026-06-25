@@ -7,6 +7,7 @@ import { loginApi } from "../api/auth.api";
 import { useAuth } from "../Hook/useAuth";
 import { useNavigate } from "react-router";
 import { showSuccess } from "../utils/toast";
+import { ToastMessage } from "./ToastMessage";
 
 
 export default function Login() {
@@ -30,8 +31,11 @@ export default function Login() {
             showSuccess(data?.data?.message || 'Login successfully!')
             navigate('/dashboard')
         },
-        onError: (error) => {
-            console.log("error", error.message)
+        onError: (error : any) => {
+            const message = error.response?.data?.message || "Something went wrong";
+
+            ToastMessage("error", message);
+            // setPassLoad(false);
         }
     })
 
