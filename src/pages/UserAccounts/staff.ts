@@ -57,6 +57,3 @@ export const createStaff = async (fullName: string, email: string, password: str
 }
 
 
-// export const updateStaffProfile = async (fullName:string)=>{
-
-// }

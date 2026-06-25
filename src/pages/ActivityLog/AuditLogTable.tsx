@@ -1,85 +1,154 @@
-import React, { useState, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import React, { useEffect, useState } from 'react';
+import { activityData, type ActivityLog } from './activityapi';
+import Pagination from '../../components/Pagination';
+import { useDebounce } from '../../utils/debounce';
 
-interface LogEntry {
-  id: string;
-  timestamp: string;
-  admin: string;
-  action: string;
-  target: string;
-  type: 'Document' | 'Ride' | 'Payment' | 'Account' | 'Rider';
-}
 
-const initialLogs: LogEntry[] = [
-  { id: '1', timestamp: '2024-03-15 09:00 AM', admin: 'Admin Super', action: 'Approved document', target: 'James Wilson - Driver License', type: 'Document' },
-  { id: '2', timestamp: '2024-03-13 03:45 PM', admin: 'John Operations', action: 'Canceled ride', target: 'RIDE-006', type: 'Ride' },
-  { id: '3', timestamp: '2024-03-10 03:00 PM', admin: 'Sarah Finance', action: 'Processed payout', target: 'Maria Garcia - $180', type: 'Payment' },
-  { id: '4', timestamp: '2024-03-08 10:00 AM', admin: 'Admin Super', action: 'Created admin account', target: 'Mike Support', type: 'Account' },
-  { id: '5', timestamp: '2024-03-15 10:30 AM', admin: 'John Operations', action: 'Updated rider info', target: 'Sarah Johnson', type: 'Rider' },
-  { id: '6', timestamp: '2024-03-14 02:00 PM', admin: 'Admin Super', action: 'Verified insurance', target: 'Linda Martinez', type: 'Document' },
-];
 
 const AuditLogTable: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [dateFilter, setDateFilter] = useState('');
 
-  const filteredLogs = useMemo(() => {
-    return initialLogs.filter((log) => {
-      const matchesSearch = 
-        log.admin.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        log.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        log.target.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesDate = dateFilter ? log.timestamp.includes(dateFilter) : true;
-      return matchesSearch && matchesDate;
-    });
-  }, [searchTerm, dateFilter]);
+
+  const [currentPage, setCurrentPage] = useState<number>(1)
+  const [search, setSearch] = useState<string>('')
+  const [finalSearch, setFinalSearch] = useState<string>(search)
+
+  const [target, setTargetType] = useState<string>("")
+  const [startDate, setStartDate] = useState<string>("")
+  // const [endDate, setEndDate] = useState<string>("")
+
+  const debounce = useDebounce(search, 1000)
+
+
+  useEffect(() => {
+    setFinalSearch(debounce);
+  }, [debounce]);
+
+
+  const { data } = useQuery({
+    queryKey: ['áctivitylog', currentPage, finalSearch, target,startDate],
+    queryFn: () => activityData(currentPage, finalSearch, target,startDate)
+  })
+
+  const logData = data?.data || []
+  const pagination = data?.pagination || {}
+
+
+  const onPrev = () => {
+    setCurrentPage(currentPage - 1)
+  }
+
+  const onNext = () => {
+    setCurrentPage(currentPage + 1)
+  }
+
 
   const typeStyles: Record<string, string> = {
-    Document: 'bg-blue-50 text-blue-600',
+    DRIVER: 'bg-blue-50 text-blue-600',
     Ride: 'bg-slate-50 text-slate-600',
-    Payment: 'bg-teal-50 text-teal-600',
-    Account: 'bg-indigo-50 text-indigo-600',
-    Rider: 'bg-gray-50 text-gray-600',
+    DOCUMENT: 'bg-teal-50 text-teal-600',
+    STAFF: 'bg-indigo-50 text-indigo-600',
+    RIDER: 'bg-gray-50 text-gray-600',
+    PAYMENT: 'bg-gray-50 text-sky-600',
   };
+
+
+
 
   return (
     <div className=" bg-gray-50 ">
-      <div className=" bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        
-        {/* Responsive Search & Filter Bar */}
-        <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row gap-4 justify-between items-center">
+      <div className=" bg-white rounded-xl  border border-gray-100 overflow-hidden">
+
+
+
+        <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row justify-between gap-4">
+
+          {/* LEFT SIDE - SEARCH */}
           <div className="relative w-full sm:w-72">
             <span className="absolute inset-y-0 left-3 flex items-center text-gray-400">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
             </span>
+
             <input
               type="text"
               placeholder="Search logs..."
-              className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          
-          <input
-            type="date"
-            className="w-full sm:w-auto px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-600 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            onChange={(e) => setDateFilter(e.target.value)}
-          />
-        </div>
 
+          {/* RIGHT SIDE - FILTERS */}
+          <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
+
+            {/* START DATE */}
+            <input
+              type="date"
+              onChange={(e) => setStartDate(e.target.value)}
+              className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+
+            {/* END DATE */}
+            {/* <input
+              type="date"
+              onChange={(e) => setEndDate(e.target.value)}
+              className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            /> */}
+
+            {/* TYPE SELECT */}
+            <select
+              onChange={(e) => setTargetType(e.target.value)}
+              className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">All Types</option>
+              <option value="STAFF">STAFF</option>
+              <option value="RIDER">RIDER</option>
+              <option value="DRIVER">DRIVER</option>
+              <option value="RIDE">RIDE</option>
+              <option value="DOCUMENT">DOCUMENT</option>
+              <option value="PAYMENT">PAYMENT</option>
+              <option value="SYSTEM">SYSTEM</option>
+            </select>
+
+          </div>
+        </div>
         {/* --- MOBILE VIEW (Visible only on small screens) --- */}
         <div className="block md:hidden">
-          {filteredLogs.map((log) => (
-            <div key={log.id} className="p-4 border-b border-gray-100 last:border-0">
-              <div className="flex justify-between items-start mb-2">
-                <span className="text-xs text-gray-400">{log.timestamp}</span>
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${typeStyles[log.type]}`}>
-                  {log.type}
+          {logData?.map((log: ActivityLog) => (
+            <div
+              key={log._id}
+              className="p-4 border-b border-gray-100 last:border-0 hover:bg-gray-50 transition"
+            >
+              {/* top row */}
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-xs text-gray-400">
+                  {new Date(log?.createdAt).toLocaleString()}
+                </span>
+
+                <span
+                  className={`px-2 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider ${typeStyles[log.targetType]
+                    }`}
+                >
+                  {log.targetType}
                 </span>
               </div>
-              <div className="font-semibold text-gray-800 text-sm">{log.admin}</div>
-              <div className="text-sm text-gray-600 mt-1">
-                <span className="font-medium text-blue-600">{log.action}:</span> {log.target}
+
+              {/* actor (who updated) */}
+              <div className="text-sm font-semibold text-gray-800">
+                Updated By:{" "}
+                <span className="text-gray-600 font-normal">
+                  {log?.actor?.email} ({log?.actor?.role})
+                </span>
+              </div>
+
+              {/* action */}
+              <div className="text-sm text-gray-600 mt-1 flex flex-wrap gap-1">
+                <span className="font-medium text-blue-600">{log.action}:</span>
+                <span className="text-gray-700">
+                  {log.metadata?.staffEmail || "-"}
+                </span>
               </div>
             </div>
           ))}
@@ -89,24 +158,60 @@ const AuditLogTable: React.FC = () => {
         <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="text-gray-400 text-xs font-semibold uppercase tracking-wider border-b border-gray-50">
-                <th className="px-6 py-4">Timestamp</th>
-                <th className="px-6 py-4">Admin</th>
+              <tr className="text-gray-400 text-sm  border-b border-gray-50">
+                <th className="px-6 py-4">CreatedAt</th>
+                <th className="px-6 py-4">UpdatedAt</th>
+                <th className="px-6 py-4">Updated By</th>
+                <th className="px-6 py-4">Role</th>
                 <th className="px-6 py-4">Action</th>
-                <th className="px-6 py-4">Target</th>
-                <th className="px-6 py-4 text-right">Type</th>
+                <th className="px-6 py-4">Target User</th>
+
+                <th className="px-6 py-4">Title</th>
+                <th className="px-6 py-4 text-right">Target Type</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
-              {filteredLogs.map((log) => (
-                <tr key={log.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">{log.timestamp}</td>
-                  <td className="px-6 py-4 text-sm font-semibold text-gray-700">{log.admin}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{log.action}</td>
-                  <td className="px-6 py-4 text-sm text-gray-500">{log.target}</td>
+            <tbody className="divide-y divide-gray-100">
+              {logData?.map((log: ActivityLog) => (
+                <tr
+                  key={log._id}
+                  className="hover:bg-gray-50 transition-all duration-200"
+                >
+                  <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
+                    {new Date(log?.createdAt).toLocaleString()}
+                  </td>
+
+                  <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
+                    {new Date(log?.updatedAt).toLocaleString()}
+                  </td>
+
+                  <td className="px-6 py-4 text-sm font-medium text-gray-700">
+                    {log?.actor?.email ?? 'Not include'}
+                  </td>
+
+                  <td className="px-6 py-4 text-sm">
+                    <span className="px-2 py-1 rounded-md bg-blue-50 text-blue-600 font-medium text-xs uppercase">
+                      {log?.actor?.role ?? "Uffs"}
+                    </span>
+                  </td>
+
+                  <td className="px-6 py-4 text-sm text-gray-700 font-medium">
+                    {log.action}
+                  </td>
+
+                  <td className="px-6 py-4 text-sm text-gray-600">
+                    {log.metadata?.staffEmail || "Not Provide"}
+                  </td>
+
+                  <td className="px-6 py-4 text-sm text-gray-500">
+                    {log.title}
+                  </td>
+
                   <td className="px-6 py-4 text-right">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${typeStyles[log.type]}`}>
-                      {log.type}
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-semibold ${typeStyles[log.targetType]
+                        }`}
+                    >
+                      {log.targetType}
                     </span>
                   </td>
                 </tr>
@@ -115,13 +220,16 @@ const AuditLogTable: React.FC = () => {
           </table>
         </div>
 
+
         {/* Empty State */}
-        {filteredLogs.length === 0 && (
+        {logData?.length === 0 && (
           <div className="p-10 text-center text-gray-400 text-sm">
             No results found matching your filters.
           </div>
         )}
       </div>
+      <Pagination onNext={onNext} onPrev={onPrev} currentPage={currentPage} totalPages={pagination?.totalPages}></Pagination>
+
     </div>
   );
 };

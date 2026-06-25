@@ -212,24 +212,24 @@ export const AddUserModal: React.FC<AddUserModalProps> = ({ onClose, mode, initi
 
           {
             isEdit && <div className="flex items-center gap-3">
-            <button
-              onClick={() => setIsActive(!active)}
-              className={`w-14 h-7 flex cursor-pointer items-center rounded-full p-1 transition-all duration-300 ${active ? "bg-green-500" : "bg-red-500"
-                }`}
-            >
-              <div
-                className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 ${active ? "translate-x-7" : "translate-x-0"
+              <button
+                onClick={() => setIsActive(!active)}
+                className={`w-14 h-7 flex cursor-pointer items-center rounded-full p-1 transition-all duration-300 ${active ? "bg-green-500" : "bg-red-500"
                   }`}
-              />
-            </button>
+              >
+                <div
+                  className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 ${active ? "translate-x-7" : "translate-x-0"
+                    }`}
+                />
+              </button>
 
-            <span
-              className={`font-medium ${active ? "text-green-600" : "text-red-600"
-                }`}
-            >
-              {active ? "Active" : "Inactive"}
-            </span>
-          </div>
+              <span
+                className={`font-medium ${active ? "text-green-600" : "text-red-600"
+                  }`}
+              >
+                {active ? "Active" : "Inactive"}
+              </span>
+            </div>
           }
 
           {/* Action Buttons */}
