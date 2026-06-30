@@ -13,9 +13,10 @@ import { dashboardOverView } from "../../api/auth.api";
 export default function Dashboard() {
   const { title, subtitle } = useDashboardTitle();
 
-  const {data} = useQuery({queryKey : ['dash_overView'],
-    queryFn : dashboardOverView,
-    retry : false
+  const { data } = useQuery({
+    queryKey: ['dash_overView'],
+    queryFn: dashboardOverView,
+    retry: false
   })
 
 

@@ -12,7 +12,7 @@ export default function Activity() {
 
       <DashboardHeading title={title} subtitle={subtitle}></DashboardHeading>
 
-<AuditLogTable></AuditLogTable>
+      <AuditLogTable></AuditLogTable>
 
     </div>
   )

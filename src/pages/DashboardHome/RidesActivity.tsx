@@ -74,8 +74,8 @@ const RidesActivity: React.FC = () => {
                 {/* Avatar */}
                 <div
                   className={`w-12 h-12 flex items-center justify-center rounded-full font-bold text-lg ${activity.targetType === "DRIVER"
-                      ? "bg-blue-100 text-blue-600"
-                      : "bg-green-100 text-green-600"
+                    ? "bg-blue-100 text-blue-600"
+                    : "bg-green-100 text-green-600"
                     }`}
                 >
                   {activity.actor?.fullName?.charAt(0) ||

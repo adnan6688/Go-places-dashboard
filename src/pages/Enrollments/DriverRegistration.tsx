@@ -113,7 +113,7 @@ const DriverRegistration: React.FC = () => {
         setLoad(true)
         const finalData = { ...data };
 
-        console.log("Form Data:", finalData);
+
         const { email, fullName, phone, licensePlate, dotExpiration, address, cityStateZip, dob: dateOfBirth, licenseNumber, issuingState, insuranceExpiration: autoInsuranceExpiration, vehicleMakeModel, vehicleYear, vehicleColor, vehicleCategory, seatCount } = finalData
 
 

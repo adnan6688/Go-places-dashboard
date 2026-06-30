@@ -41,7 +41,7 @@ const DriverDetails: React.FC = () => {
 
   const { id } = useParams()
 
-  const { data: details, isLoading  , refetch} = useQuery({
+  const { data: details, isLoading, refetch } = useQuery({
     queryKey: ['details'],
     queryFn: () => driverDetailsApi(id as string)
   })
@@ -52,7 +52,6 @@ const DriverDetails: React.FC = () => {
     (cat) => !existingCategories.includes(cat)
   );
 
-  console.log("details", details)
 
 
   if (isLoading) {
@@ -85,16 +84,16 @@ const DriverDetails: React.FC = () => {
                 {/* DOT */}
                 <span
                   className={`h-2 w-2 rounded-full ${details?.availability?.isOnline
-                      ? "bg-emerald-400 animate-pulse shadow-md shadow-emerald-400/40"
-                      : "bg-slate-400"
+                    ? "bg-emerald-400 animate-pulse shadow-md shadow-emerald-400/40"
+                    : "bg-slate-400"
                     }`}
                 />
 
                 {/* TEXT */}
                 <span
                   className={`font-semibold ${details?.availability?.isOnline
-                      ? "text-emerald-500"
-                      : "text-slate-400"
+                    ? "text-emerald-500"
+                    : "text-slate-400"
                     }`}
                 >
                   {details?.availability?.isOnline ? "Online" : "Offline"}

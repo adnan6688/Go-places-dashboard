@@ -29,7 +29,7 @@ const PayMentList: React.FC = () => {
     queryFn: () => getPaymentList(status)
   })
 
-  console.log(status)
+
 
 
 

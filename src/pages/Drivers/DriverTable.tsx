@@ -49,7 +49,7 @@ const DriverTable: React.FC = () => {
         setPage(page + 1)
     }
 
-    console.log(driverData?.drivers?.length)
+
 
     return (<div className="bg-gray-50 w-full  ">
 

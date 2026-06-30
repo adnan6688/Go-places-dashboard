@@ -40,7 +40,7 @@ export const driverEnrollMent = async (data: any) => {
       err?.message ||
       "Something went wrong";
 
-    console.log(message);
+
 
     throw new Error(message);
   }

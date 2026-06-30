@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface GlobalLoadingProps {
-  message?: string; // অপশনাল মেসেজ পাস করার জন্য (e.g., "Logging in...", "Loading Data...")
+  message?: string; 
 }
 
 const GlobalLoading: React.FC<GlobalLoadingProps> = ({ message = "Loading..." }) => {

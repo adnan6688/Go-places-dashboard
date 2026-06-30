@@ -41,15 +41,15 @@ const RidesOverview = () => {
   })
 
 
-const chartValues = Array.from({ length: 12 }, (_, i) => {
-  const found = rideOverViewData?.find(
-    (item: { count: number; month: number }) => item.month === i + 1
-  );
+  const chartValues = Array.from({ length: 12 }, (_, i) => {
+    const found = rideOverViewData?.find(
+      (item: { count: number; month: number }) => item.month === i + 1
+    );
 
-  return found?.count || 0;
-});
+    return found?.count || 0;
+  });
 
-  
+
 
 
   const data = {

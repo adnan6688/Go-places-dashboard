@@ -54,7 +54,6 @@ export const deleteNotifications = async (id: string) => {
 
     try {
         const res = await axiosInstance.delete(`/admin/global-notification/${id}`)
-        console.log("result", res)
         return res
     } catch (e) {
         console.log(e)

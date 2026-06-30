@@ -72,7 +72,7 @@ const PaymentDetails = () => {
         queryFn: () => paymentDetailsApi(id)
     })
 
-    console.log(data, "data details")
+  
 
     const driver = data?.data && data?.data[0]?.driver
 
