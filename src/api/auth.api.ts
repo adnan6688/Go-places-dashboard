@@ -35,6 +35,7 @@ export type TActivity = {
     _id: string;
     actor: {
         _id: string;
+        fullName  : string
     };
     action: string;
     targetType: "DRIVER" | "RIDER";

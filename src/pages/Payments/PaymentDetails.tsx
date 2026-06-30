@@ -1,5 +1,8 @@
+import { useQuery } from '@tanstack/react-query';
 import { Calendar, CheckCircle2, Clock, History, Navigation } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { useParams } from 'react-router';
+import { paymentDetailsApi } from './paymentApi';
 
 interface DriverInfo {
     name: string;
@@ -21,6 +24,11 @@ interface TripRecord {
 }
 
 const PaymentDetails = () => {
+
+
+    const { id } = useParams()
+
+
     const driverInfo: DriverInfo = {
         name: "Rahim Uddin",
         email: "rahim.dev@example.com",
@@ -58,15 +66,23 @@ const PaymentDetails = () => {
             .reduce((sum, trip) => sum + trip.amount, 0);
     }, [selectedTripIds, trips]);
 
+
+    const { data } = useQuery({
+        queryKey: ['payment_datails', id],
+        queryFn: () => paymentDetailsApi(id)
+    })
+
+    console.log(data, "data details")
+
+    const driver = data?.data && data?.data[0]?.driver
+
+
+
     return (
         <div className="w-full bg-gray-50 text-slate-900  sm:p-3">
             <div className=" space-y-6">
 
                 {/* Top Cards Section */}
-
-
-
-
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Driver Profile Card (Admin View) */}
                     <div className="bg-white border border-gray-100 p-8 rounded-[2.5rem] flex flex-col items-center text-center shadow-xl shadow-gray-200/40 relative overflow-hidden group">
@@ -74,17 +90,20 @@ const PaymentDetails = () => {
 
                         <div className="relative z-10 mb-5">
                             <div className="w-24 h-24 bg-slate-100 rounded-3xl flex items-center justify-center text-slate-800 text-3xl  shadow-inner group-hover:scale-105 transition-transform duration-300 border-2 border-white">
-                                {driverInfo.avatar}
+                                {driver?.fullName.charAt(0)}{driver?.fullName?.charAt(1)}
                             </div>
-                            <div className="absolute -bottom-1 -right-1 w-7 h-7 bg-green-500 border-4 border-white rounded-full shadow-sm"></div>
+
+                            <div className={`absolute -bottom-1 -right-1 w-7 h-7 ${driver?.user?.status == 'active' ? 'bg-green-500' : 'bg-red-400'}  border-4 border-white rounded-full shadow-sm`}></div>
+
                         </div>
 
                         <div className="relative z-10">
                             <div className="px-3 py-1 bg-blue-50 text-blue-600 text-[10px]  uppercase tracking-widest rounded-full mb-3 inline-block border border-blue-100">
                                 Active Driver
                             </div>
-                            <h2 className="text-2xl  text-gray-900 tracking-tight">{driverInfo.name}</h2>
-                            <p className="text-gray-500 text-sm font-medium mt-1">{driverInfo.email}</p>
+                            <h2 className="text-2xl  text-gray-900 tracking-tight">{driver?.fullName}</h2>
+                            <h2 className="text-xl  text-gray-900 tracking-tight">{driver?.driverId}</h2>
+                            <p className="text-gray-500 text-sm font-medium mt-1">{driver?.user?.email}</p>
 
                             <div className="mt-6 pt-6 border-t border-gray-50 w-full">
                                 <div className="flex justify-between text-[11px] font-bold text-gray-400 uppercase tracking-tighter">

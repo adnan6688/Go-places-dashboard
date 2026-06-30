@@ -1,103 +1,85 @@
+import { useQuery } from '@tanstack/react-query';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Send, Trash2, X } from 'lucide-react';
+import { Loader2, Send, Trash2, X } from 'lucide-react';
 import { useState } from 'react';
+import { allNotifications, deleteNotifications, sentNotification, type TNotifictions } from './notificationsapi';
+import Pagination from '../../components/Pagination';
+import { ToastMessage } from '../../components/ToastMessage';
+import SmallLoading from '../../Loading/SmallLoading';
+
+type UserType = "" | "all" | "driver" | "rider";
+type notiType = "announcement" | "alert" | "update" | ""
+
 
 const CustomNotification = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [currentPage, setCurrentPage] = useState<number>(1)
 
-    // Sample Data
-    const notifications = [
-        {
-            id: 1,
-            title: 'Ride Reminder',
-            message: 'Your ride is scheduled for tomorrow at 9:30 AM',
-            target: 'All Drivers',
-            type: 'Announcement',
-            sentAt: '2024-03-14 06:00 PM',
+    const [title, setTitle] = useState<string>('')
+    const [body, setBody] = useState<string>("")
+    const [target, setTarget] = useState<UserType>('')
+    const [type, setType] = useState<notiType>('')
+    const [load, setLoad] = useState<boolean>(false)
 
-        },
-        {
-            id: 2,
-            title: 'Service Update',
-            message: 'New ride types available in your area',
-            target: 'All Riders',
-            type: 'Announcement',
-            sentAt: '2024-03-12 12:00 PM',
 
-        },
-        {
-            id: 3,
-            title: 'Document Expiring',
-            message: 'Your driving license will expire in 5 days. Please update it.',
-            target: 'All Drivers',
-            type: 'Alert',
-            sentAt: '2024-03-13 09:00 AM',
 
-        },
-        {
-            id: 4,
-            title: 'Payment Processed',
-            message: 'Your weekly payout of $450.00 has been sent to your bank.',
-            target: 'All Users',
-            type: 'Alert',
-            sentAt: '2024-03-11 04:30 PM',
+    const [deleteLoad, setDeleteLoad] = useState<boolean>(false)
+    const [deleteId, setDeleteId] = useState<string>('')
 
-        },
-        {
-            id: 5,
-            title: 'System Maintenance',
-            message: 'Scheduled maintenance tonight at 2 AM. App may be slow.',
-            target: 'All Users',
-            type: 'Announcement',
-            sentAt: '2024-03-10 11:00 AM',
 
-        },
-        {
-            id: 6,
-            title: 'New Feature Alert',
-            message: 'Now you can book multi-stop rides! Try it now.',
-            target: 'All Riders',
-            type: 'Update',
-            sentAt: '2024-03-08 10:00 AM',
 
-        },
-        {
-            id: 7,
-            title: 'Account Verification',
-            message: 'Your identity documents have been successfully verified.',
-            target: 'All Drivers',
-            type: 'Alert',
-            sentAt: '2024-03-05 02:15 PM',
+    const { data, refetch, isLoading } = useQuery({
+        queryKey: ['notifications_data', currentPage],
+        queryFn: () => allNotifications(currentPage)
+    })
 
-        },
-        {
-            id: 8,
-            title: 'Promo Code',
-            message: 'Use code "RIDE50" to get 50% off on your next trip.',
-            target: 'All Users',
-            type: 'Update',
-            sentAt: '2024-03-01 09:00 AM',
+    const onPrev = () => {
+        setCurrentPage(currentPage - 1)
+    }
 
-        },
-        {
-            id: 9,
-            title: 'Unusual Login',
-            message: 'New login detected from a Chrome browser on Windows.',
-            target: 'All Users',
-            type: 'Alert',
-            sentAt: '2024-02-28 11:45 PM',
+    const nextPage = () => {
+        setCurrentPage(currentPage + 1)
+    }
 
-        },
-        {
-            id: 10,
-            title: 'Safety Standard Update',
-            message: 'We have updated our safety policies for all drivers.',
-            target: 'All Drivers',
-            type: 'Update',
-            sentAt: '2024-02-25 08:00 AM',
-
+    const handleSentNotifications = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault()
+        setLoad(true)
+        try {
+            const result = await sentNotification({ title, body, target, type })
+            if (result?.data?.success) {
+                setIsModalOpen(false)
+                ToastMessage('success', result?.data?.message)
+                refetch()
+            }
         }
-    ];
+        catch {
+
+        } finally {
+            setLoad(false)
+        }
+    }
+
+
+    const handleDeleteFunction = async (id: string) => {
+        setDeleteLoad(true)
+        setDeleteId(id)
+
+        try {
+            const res = await deleteNotifications(id)
+            if (res?.data?.success) {
+                ToastMessage('success', res?.data?.message)
+                refetch()
+            }
+        }
+        catch (err) {
+            console.log(err)
+        }
+        finally {
+            setDeleteLoad(false)
+            setDeleteId('')
+        }
+    }
+
 
     return (
         <div className="bg-[#f8fafc] ">
@@ -128,36 +110,49 @@ const CustomNotification = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
-                            {notifications.map((n) => (
-                                <tr key={n.id} className="hover:bg-slate-50/50 transition-colors">
+                            {isLoading ? <tr>
+                                <td colSpan={100} className="text-center py-10">
+                                    <div className="inline-flex justify-center items-center w-full">
+                                        <SmallLoading message="notification loading...." />
+                                    </div>
+                                </td>
+                            </tr> : !data?.notifications?.length ? <tr>
+                                <td colSpan={100} className="text-center py-8 text-slate-400 font-medium">
+                                    notifications not found
+                                </td>
+                            </tr> : data?.notifications?.map((n: TNotifictions) => (
+                                <tr key={n._id} className="hover:bg-slate-50/50 transition-colors">
                                     <td className="p-4 font-medium text-slate-700">{n.title}</td>
-                                    <td className="p-4 text-slate-600 max-w-xs truncate">{n.message}</td>
+                                    <td className="p-4 text-slate-600 max-w-xs truncate">{n.body}</td>
                                     <td className="p-4">
-                                        <span className={`px-3 py-1 rounded-md text-xs font-bold tracking-wide ${n.target === 'All Users' ? 'bg-blue-50 text-blue-600 border border-blue-100' :
-                                            n.target === 'All Drivers' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
-                                                n.target === 'All Riders' ? 'bg-amber-50 text-amber-600 border border-amber-100' :
+                                        <span className={`px-3 py-1 rounded-md text-xs font-bold tracking-wide ${n.target === 'all' ? 'bg-blue-50 text-blue-600 border border-blue-100' :
+                                            n.target === 'driver' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
+                                                n.target === 'rider' ? 'bg-amber-50 text-amber-600 border border-amber-100' :
                                                     'text-slate-600 font-medium'
                                             }`}>
-                                            {n.target}
+                                            {n.target?.toUpperCase()}
                                         </span>
                                     </td>
                                     <td className="p-4">
-                                        <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider border ${n.type === 'Announcement' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' :
-                                                n.type === 'Alert' ? 'bg-rose-50 text-rose-600 border-rose-100' :
-                                                    n.type === 'Update' ? 'bg-cyan-50 text-cyan-600 border-cyan-100' :
-                                                        'bg-slate-50 text-slate-500 border-slate-100'
+                                        <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider border ${n.type === 'announcement' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' :
+                                            n.type === 'alert' ? 'bg-rose-50 text-rose-600 border-rose-100' :
+                                                n.type === 'update' ? 'bg-cyan-50 text-cyan-600 border-cyan-100' :
+                                                    'bg-slate-50 text-slate-500 border-slate-100'
                                             }`}>
                                             {n.type}
                                         </span>
                                     </td>
-                                    <td className="p-4 text-slate-500 text-sm">{n.sentAt}</td>
+                                    <td className="p-4 text-slate-500 text-sm">{new Date(n.createdAt).toLocaleString()}</td>
                                     <td className="p-4 text-center">
                                         <button
 
+                                            onClick={() => handleDeleteFunction(n._id)}
                                             className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
                                             title="Delete Notification"
                                         >
-                                            <Trash2 size={18} />
+                                            {
+                                                deleteLoad && deleteId == n._id ? <Loader2 className="animate-spin" /> : <Trash2 className=' cursor-pointer' size={18} />
+                                            }
                                         </button>
                                     </td>
                                 </tr>
@@ -168,21 +163,36 @@ const CustomNotification = () => {
 
                 {/* Mobile Card View */}
                 <div className="md:hidden grid grid-cols-1 divide-y divide-slate-100">
-                    {notifications.map((n) => (
-                        <div key={n.id} className="p-4 space-y-3">
+                    {isLoading ? <div>
+                        <div  className="text-center py-10">
+                            <div className="inline-flex justify-center items-center w-full">
+                                <SmallLoading message="notification loading...." />
+                            </div>
+                        </div>
+                    </div> : !data?.notifications?.length ? <div>
+                        <div  className="text-center py-8 text-slate-400 font-medium">
+                            notifications not found
+                        </div>
+                    </div> : data?.notifications?.map((n: TNotifictions) => (
+                        <div key={n._id} className="p-4 space-y-3">
                             <div className="flex justify-between items-start">
                                 <h3 className="font-bold text-slate-800">{n.title}</h3>
                                 <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded font-bold uppercase">{n.type}</span>
                             </div>
-                            <p className="text-sm text-slate-600 leading-relaxed">{n.message}</p>
+                            <p className="text-sm text-slate-600 leading-relaxed">{n.body}</p>
                             <div className="flex justify-between items-center text-xs pt-2">
-                                <span className="text-slate-400">{n.sentAt}</span>
+                                <span className="text-slate-400">{new Date(n.createdAt).toLocaleString()}</span>
                                 <span className="font-medium text-blue-500 italic">To: {n.target}</span>
                             </div>
                         </div>
                     ))}
                 </div>
             </div>
+
+            <Pagination currentPage={currentPage} onNext={nextPage} onPrev={onPrev} totalPages={data?.meta?.totalPages}></Pagination>
+
+
+
 
             {/* Send Notification Modal */}
             <AnimatePresence>
@@ -208,32 +218,62 @@ const CustomNotification = () => {
                                 </button>
                             </div>
 
-                            <form className="p-6 space-y-5" onSubmit={(e) => e.preventDefault()}>
+                            <form className="p-6 space-y-5" onSubmit={handleSentNotifications}>
                                 <div>
                                     <label className="block text-sm font-semibold text-slate-700 mb-1.5">Notification Title</label>
-                                    <input type="text" placeholder="e.g. System Maintenance" className="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" />
+                                    <input
+                                        onChange={(e) => setTitle(e.target.value)}
+                                        type="text"
+                                        required
+                                        minLength={5}
+                                        onInvalid={(e) =>
+                                            e.currentTarget.setCustomValidity(
+                                                "Title must be at least 5 characters long."
+                                            )
+                                        }
+                                        onInput={(e) => e.currentTarget.setCustomValidity("")}
+                                        placeholder="e.g. System Maintenance"
+                                        className="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                                    />
                                 </div>
 
                                 <div>
                                     <label className="block text-sm font-semibold text-slate-700 mb-1.5">Message Content</label>
-                                    <textarea rows={3} placeholder="Write your message here..." className="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" />
+                                    <textarea minLength={10}
+                                        onInvalid={(e) =>
+                                            e.currentTarget.setCustomValidity(
+                                                "Message must be at least 5 characters long."
+                                            )
+                                        } onChange={(e) => setBody(e.target.value)} rows={3} required placeholder="Write your message here..." className="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" />
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-semibold text-slate-700 mb-1.5">Target Audience</label>
-                                        <select className="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none">
-                                            <option>All Users</option>
-                                            <option>Drivers Only</option>
-                                            <option>Riders Only</option>
+                                        <select
+                                            required
+
+                                            onChange={(e) => setTarget(e.target.value as UserType)}
+                                            defaultValue=""
+                                            className="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none"
+                                        >
+                                            <option value="" disabled>
+                                                Select User Type
+                                            </option>
+                                            <option value="all">All Users</option>
+                                            <option value="driver">Drivers Only</option>
+                                            <option value="rider">Riders Only</option>
                                         </select>
                                     </div>
                                     <div>
                                         <label className="block text-sm font-semibold text-slate-700 mb-1.5">Type</label>
-                                        <select className="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none">
-                                            <option>Announcement</option>
-                                            <option>Alert</option>
-                                            <option>Update</option>
+                                        <select onChange={(e) => setType(e.target.value as notiType)} required className="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none">
+                                            <option value="" disabled>
+                                                Select  Type
+                                            </option>
+                                            <option value={'announcement'}>Announcement</option>
+                                            <option value={'alert'}>Alert</option>
+                                            <option value={'update'}>Update</option>
                                         </select>
                                     </div>
                                 </div>
@@ -242,8 +282,15 @@ const CustomNotification = () => {
                                     <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 px-4 py-2.5 border border-slate-200 text-slate-600 font-semibold rounded-lg hover:bg-slate-50 transition-colors">
                                         Cancel
                                     </button>
-                                    <button type="submit" className="flex-1 bg-blue-600 text-white font-semibold py-2.5 rounded-lg hover:bg-blue-700 shadow-md shadow-blue-200 flex justify-center items-center gap-2">
-                                        <Send size={16} /> Broadcast Now
+                                    <button disabled={load} type="submit" className="flex-1 bg-blue-600 disabled:cursor-not-allowed disabled:bg-gray-500 text-white font-semibold py-2.5 rounded-lg hover:bg-blue-700 shadow-md shadow-blue-200 flex justify-center items-center gap-2">
+                                        {load ? (
+                                            <Loader2 className="animate-spin" />
+                                        ) : (
+                                            <>
+                                                <Send size={16} />
+                                                <span>Broadcast Now</span>
+                                            </>
+                                        )}
                                     </button>
                                 </div>
                             </form>

@@ -1,38 +1,35 @@
-import React from "react";
+import { useQuery } from "@tanstack/react-query";
+import React, { useState } from "react";
 import { Link } from "react-router";
+import { getPaymentList, type WithdrawalRequest } from "./paymentApi";
+import SmallLoading from "../../Loading/SmallLoading";
 
-type DriverRequest = {
-  id: string;
-  driverName: string;
-  status: "pending" | "completed" | "rejected";
-  amount: number;
-  date: string;
-  avatar: string;
-  trip: number;
-  miles: number;
+const statusStyle: Record<string, string> = {
+  PENDING: "bg-amber-100 text-amber-700 ring-1 ring-amber-200",
+  TRANSFERRED: "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200",
+  REJECTED: "bg-rose-100 text-rose-700 ring-1 ring-rose-200",
+  FAILED: "bg-rose-100 text-red-500 ring-1 ring-rose-200",
 };
 
-const data: DriverRequest[] = [
-  { id: "1", driverName: "Rahim Uddin", status: "pending", amount: 1200, date: "2026-04-17", avatar: "RU", trip: 56, miles: 4 },
-  { id: "2", driverName: "Karim Khan", status: "completed", amount: 800, date: "2026-04-15", avatar: "KK", trip: 4, miles: 14 },
-  { id: "3", driverName: "Sabbir Ahmed", status: "rejected", amount: 500, date: "2026-04-14", avatar: "SA", trip: 66, miles: 45 },
-  { id: "4", driverName: "Jashim Uddin", status: "completed", amount: 2500, date: "2026-04-12", avatar: "JU", trip: 4, miles: 4 },
-  { id: "5", driverName: "Arif Hossain", status: "pending", amount: 1450, date: "2026-04-10", avatar: "AH", trip: 16, miles: 10 },
-];
-
-const statusStyle = {
-  pending: "bg-amber-100 text-amber-700 ring-1 ring-amber-200",
-  completed: "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200",
-  rejected: "bg-rose-100 text-rose-700 ring-1 ring-rose-200",
+const dotStyle: Record<string, string> = {
+  PENDING: "bg-amber-500",
+  TRANSFERRED: "bg-emerald-500",
+  REJECTED: "bg-rose-500",
+  FAILED: "bg-rose-100 text-red-500 ring-1 ring-rose-200",
 };
 
-const dotStyle = {
-  pending: "bg-amber-500",
-  completed: "bg-emerald-500",
-  rejected: "bg-rose-500",
-};
+
 
 const PayMentList: React.FC = () => {
+
+  const [status, setStatus] = useState<string>('')
+
+  const { data: paymentData, isLoading } = useQuery({
+    queryKey: ['payment_list', status],
+    queryFn: () => getPaymentList(status)
+  })
+
+  console.log(status)
 
 
 
@@ -76,11 +73,12 @@ const PayMentList: React.FC = () => {
 
             {/* Custom Styled Select Container */}
             <div className="relative w-full sm:w-64 group">
-              <select className="appearance-none w-full pl-4 pr-10 py-3 bg-gray-50/50 border-0 ring-1 ring-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all duration-300 outline-none text-gray-700 font-medium cursor-pointer">
-                <option value="all">All Status</option>
-                <option value="pending">🕒 Pending</option>
-                <option value="complete">✅ Complete</option>
-                <option value="rejected">❌ Rejected</option>
+              <select onChange={(e) => setStatus(e.target.value)} className="appearance-none w-full pl-4 pr-10 py-3 bg-gray-50/50 border-0 ring-1 ring-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all duration-300 outline-none text-gray-700 font-medium cursor-pointer">
+                <option value="">All Status</option>
+                <option value="PENDING">🕒 Pending</option>
+                <option value="TRANSFERRED">✅ Transferred</option>
+                <option value="REJECTED">❌ Rejected</option>
+                <option value="FAILED">⚠️ Failed</option>
               </select>
               <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400 group-hover:text-indigo-500">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -97,7 +95,7 @@ const PayMentList: React.FC = () => {
               <span className="relative inline-flex rounded-full h-3 w-3 bg-indigo-500"></span>
             </span>
             <span className="text-sm font-bold text-indigo-700 whitespace-nowrap">
-              {data.length} Total Logs
+              {paymentData?.data?.data?.length} Total Logs
             </span>
           </div>
 
@@ -105,16 +103,16 @@ const PayMentList: React.FC = () => {
 
         {/* --- Mobile View (Cards) --- */}
         <div className="grid grid-cols-1 gap-4 md:hidden">
-          {data.map((item) => (
-            <div key={item.id} className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 active:scale-[0.98] transition-transform">
+          {paymentData?.data?.data?.map((item: WithdrawalRequest) => (
+            <div key={item._id} className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 active:scale-[0.98] transition-transform">
               <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center">
                   <div className="h-11 w-11 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold shadow-sm">
-                    {item.avatar}
+                    {item.driver?.fullName.charAt(0)}
                   </div>
                   <div className="ml-3">
-                    <p className="text-sm font-bold text-gray-900">{item.driverName}</p>
-                    <p className="text-xs text-gray-400">ID: #{item.id}452</p>
+                    <p className="text-sm font-bold text-gray-900">{item.driver?.fullName}</p>
+                    <p className="text-xs text-gray-400">ID: {item?.driver?.driverId}</p>
                   </div>
                 </div>
                 <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${statusStyle[item.status]}`}>
@@ -127,7 +125,7 @@ const PayMentList: React.FC = () => {
                 <div>
                   <p className="text-[10px] text-gray-400 uppercase font-semibold">Amount</p>
                   <p className="text-lg  font-semibold text-gray-800">${item.amount.toLocaleString()}</p>
-                  <p className="text-xs text-gray-400 mt-1">{item.date}</p>
+                  <p className="text-xs text-gray-400 mt-1">{new Date(item?.createdAt).toLocaleString()}</p>
                 </div>
                 <button className="px-5 py-2 bg-blue-50 text-blue-700 text-sm font-bold rounded-xl hover:bg-blue-600 hover:text-white transition-all">
                   Details
@@ -142,26 +140,36 @@ const PayMentList: React.FC = () => {
           <table className="min-w-full leading-normal">
             <thead>
               <tr className="bg-gray-50/50">
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Driver Details</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Amount</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Trip</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Miles</th>
-                <th className="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Action</th>
+                <th className="px-6 py-4 text-left font-semibold text-gray-500  ">Driver Details</th>
+                <th className="px-6 py-4 text-left  font-semibold text-gray-500 ">Status</th>
+                <th className="px-6 py-4 text-left  font-semibold text-gray-500">Amount</th>
+                <th className="px-6 py-4 text-left  font-semibold text-gray-500  ">Request Date</th>
+                <th className="px-6 py-4 text-left  font-semibold text-gray-500  ">Trip</th>
+                <th className="px-6 py-4 text-left  font-semibold text-gray-500  ">Miles</th>
+                <th className="px-6 py-4 text-center  font-semibold text-gray-500 ">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {data.map((item) => (
-                <tr key={item.id} className="group hover:bg-blue-50/30 transition-colors duration-200">
+              {isLoading ? <tr>
+                <td colSpan={100} className="text-center py-10">
+                  <div className="inline-flex justify-center items-center w-full">
+                    <SmallLoading message="transection loading...." />
+                  </div>
+                </td>
+              </tr> : !paymentData?.data?.data?.length ? <tr>
+                <td colSpan={100} className="text-center py-8 text-slate-400 font-medium">
+                  transection not found
+                </td>
+              </tr> : paymentData?.data?.data?.map((item: WithdrawalRequest) => (
+                <tr key={item._id} className="group hover:bg-blue-50/30 transition-colors duration-200">
                   <td className="px-6 py-4">
                     <div className="flex items-center">
                       <div className="h-10 w-10 shrink-0 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs shadow-sm">
-                        {item.avatar}
+                        {item.driver?.fullName.charAt(0)}
                       </div>
                       <div className="ml-4">
-                        <p className="text-sm font-semibold text-gray-900">{item.driverName}</p>
-                        <p className="text-xs text-gray-400">ID: #{item.id}452</p>
+                        <p className="text-sm font-semibold text-gray-900">{item.driver?.fullName}</p>
+                        <p className="text-xs text-gray-400">ID: {item.driver?.driverId}</p>
                       </div>
                     </div>
                   </td>
@@ -172,19 +180,19 @@ const PayMentList: React.FC = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4 font-bold text-gray-700 text-sm">${item.amount.toLocaleString()}</td>
-                  <td className="px-6 py-4 text-sm text-gray-500">{item.date}</td>
+                  <td className="px-6 py-4 text-sm text-gray-500">{new Date(item?.createdAt).toLocaleString()}</td>
                   <td className="px-6 py-4">
                     <span className="inline-block px-3 py-1 bg-gray-100 rounded-md text-sm font-medium text-gray-800 hover:bg-indigo-100 hover:text-indigo-600 transition">
-                      {item.trip}
+                      {item.tripCount}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600">
                     <span className="px-3 py-1 bg-blue-100 text-blue-400 rounded-full text-xs font-semibold">
-                      {item.miles} miles
+                      {item.totalMiles} miles
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-right">
-                    <Link to="/dashboard/payments/details/1">
+                  <td className="px-6 py-4 text-center">
+                    <Link to={`/dashboard/payments/details/${item?._id}`}>
                       <button className="px-4 py-2 text-sm font-semibold rounded-lg text-white bg-linear-to-r from-blue-500 to-indigo-600 hover:from-indigo-600 hover:to-blue-500 shadow-md hover:shadow-lg transition-all duration-300 flex items-center gap-2">
                         Details
                       </button></Link>

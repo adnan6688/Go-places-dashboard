@@ -1,0 +1,92 @@
+import axiosInstance from "../../baseUrl/baseurl"
+
+
+export type WithdrawalStatus = "PENDING" | "TRANSFERRED" | "REJECTED";
+
+export interface Driver {
+    _id: string;
+    driverId: string;
+    fullName: string;
+}
+
+export interface ReviewedBy {
+    _id: string;
+    email: string;
+    role: "admin" | "driver" | "rider" | string;
+}
+
+export interface WithdrawalRequest {
+    _id: string;
+
+    amount: number;
+
+    driver: Driver;
+    driverId: string;
+
+    parentRequest: string;
+
+    status: WithdrawalStatus;
+
+    stripeAccountId: string;
+    stripeTransferId: string;
+
+    totalMiles: number;
+    tripCount: number;
+
+    requestedAt: string;
+    reviewedAt: string;
+
+    createdAt: string;
+    updatedAt: string;
+
+    reviewedBy: ReviewedBy;
+}
+
+
+type Tparams = {
+    status?: string,
+    page?: number
+}
+export const getPaymentList = async (status?: string, page?: number) => {
+
+    try {
+
+        const params: Tparams = {}
+        if (status) {
+            params.status = status
+        }
+        if (page) {
+            params.page = page
+        }
+
+        const result = await axiosInstance.get(`/admin/payments/history`, { params })
+
+        return result?.data
+    } catch (er) {
+        console.log(er)
+    }
+}
+
+
+
+export const paymentSummary = async () => {
+
+    try {
+        const res = await axiosInstance.get('/admin/payments/summary')
+        return res?.data?.data || {}
+    } catch (er) {
+        console.log(er)
+    }
+}
+
+
+
+export const paymentDetailsApi = async (id? : string)=>{
+    try{
+        const res = await axiosInstance.get(`/admin/payments/${id}/details`)
+        return res?.data?.data || {}
+    }
+    catch(err){
+        console.log(err)
+    }
+}

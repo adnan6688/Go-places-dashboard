@@ -78,8 +78,8 @@ const RidesActivity: React.FC = () => {
                       : "bg-green-100 text-green-600"
                     }`}
                 >
-                  {activity.metadata?.driverName?.charAt(0) ||
-                    activity.metadata?.riderName?.charAt(0)}
+                  {activity.actor?.fullName?.charAt(0) ||
+                    activity.actor?.fullName?.charAt(0)}
                 </div>
 
                 {/* Content */}

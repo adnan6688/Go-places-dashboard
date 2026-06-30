@@ -1,5 +1,4 @@
 import CustomNotification from "./CustomNotification"
-
 export default function Notifications() {
 
 
