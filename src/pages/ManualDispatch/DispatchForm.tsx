@@ -1,162 +1,273 @@
-import { Calendar, MapPin, Send, User } from 'lucide-react';
-import { useForm } from 'react-hook-form';
+import { MapPin, Plus, Minus, Send, User } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { Autocomplete } from "@react-google-maps/api";
+import { useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { dispatchDrivers, dispatchRiders } from "./dispatchRidersAndDrivers";
 
-// Define the form data types
 type DispatchFormData = {
-    rider: string;
-    driver: string;
-    pickup: string;
-    destination: string;
-    date: string;
-    time: string;
-    rideType: string;
-    notes?: string;
+  rider: string;
+  driver: string;
+  pickup: string;
+  destination: string;
+  date: string;
+  time: string;
+  notes?: string;
+};
+
+type LocationType = {
+  address: string;
+  coordinates: {
+    lat: number;
+    lng: number;
+  };
 };
 
 const DispatchForm = () => {
-    const {
-        register,
-        handleSubmit,
-        formState: { errors },
-    } = useForm<DispatchFormData>();
+  const { register, handleSubmit } = useForm<DispatchFormData>();
 
-    const onSubmit = (data: DispatchFormData) => {
-        console.log("Form Submitted:", data);
-        alert("Ride Dispatched Successfully! Check Console.");
+  const pickupRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const destinationRef = useRef<google.maps.places.Autocomplete | null>(null);
+
+  const stopRefs = useRef<Record<number, google.maps.places.Autocomplete | null>>({});
+
+  const [pickup, setPickup] = useState<LocationType | null>(null);
+  const [destination, setDestination] = useState<LocationType | null>(null);
+  const [stops, setStops] = useState<LocationType[]>([]);
+
+  const [riderStore, setRiderStore] = useState("");
+  const [driverStore, setDriverStore] = useState("");
+
+  const { data: riders } = useQuery({
+    queryKey: ["riders"],
+    queryFn: dispatchRiders,
+  });
+
+  const { data: drivers } = useQuery({
+    queryKey: ["drivers", riderStore],
+    queryFn: () => dispatchDrivers(riderStore),
+    enabled: !!riderStore,
+  });
+
+  // ➕ ADD STOP
+  const addStop = () => {
+    setStops((prev) => [
+      ...prev,
+      {
+        address: "",
+        coordinates: { lat: 0, lng: 0 },
+      },
+    ]);
+  };
+
+  // ➖ REMOVE STOP
+  const removeStop = (index: number) => {
+    setStops((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // ✏️ UPDATE STOP
+  const updateStop = (
+    index: number,
+    place: google.maps.places.PlaceResult
+  ) => {
+    const copy = [...stops];
+
+    copy[index] = {
+      address: place.formatted_address || "",
+      coordinates: {
+        lat: place.geometry?.location?.lat() || 0,
+        lng: place.geometry?.location?.lng() || 0,
+      },
     };
 
-    return (
-        <div className="  flex  ">
-            <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-3xl space-y-6">
+    setStops(copy);
+  };
 
-                {/* Section 1: Rider & Driver */}
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-                    <div className="flex items-center gap-2 mb-6 border-b pb-4">
-                        <User className="w-5 h-5 text-gray-500" />
-                        <h2 className="text-xl font-bold text-gray-800">Rider & Driver</h2>
-                    </div>
+  // 🚀 SUBMIT
+  const onSubmit = (data: DispatchFormData) => {
+    const payload = {
+      pickupLocation: pickup,
+      stops,
+      dropoffLocation: destination,
+      scheduledAt: new Date(`${data.date}T${data.time}`).toISOString(),
+      notes: data.notes,
+      riderUserId: riderStore,
+      driverUserId: driverStore,
+    };
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <label className="text-sm font-semibold text-gray-700">Select Rider *</label>
-                            <select
-                                {...register("rider", { required: "Please select a rider" })}
-                                className={`w-full p-3 bg-gray-50 border ${errors.rider ? 'border-red-500' : 'border-gray-200'} rounded-xl outline-none focus:ring-2 focus:ring-blue-500 appearance-none`}
-                            >
-                                <option value="">Choose rider...</option>
-                                <option value="john_doe">John Doe</option>
-                            </select>
-                            {errors.rider && <p className="text-red-500 text-xs mt-1">{errors.rider.message}</p>}
-                        </div>
+    console.log("🔥 FINAL PAYLOAD", payload);
+  };
 
-                        <div className="space-y-2">
-                            <label className="text-sm font-semibold text-gray-700">Assign Driver *</label>
-                            <select
-                                {...register("driver", { required: "Please assign a driver" })}
-                                className={`w-full p-3 bg-gray-50 border ${errors.driver ? 'border-red-500' : 'border-gray-200'} rounded-xl outline-none focus:ring-2 focus:ring-blue-500 appearance-none`}
-                            >
-                                <option value="">Choose driver...</option>
-                                <option value="driver_smith">Driver Smith</option>
-                            </select>
-                            {errors.driver && <p className="text-red-500 text-xs mt-1">{errors.driver.message}</p>}
-                        </div>
-                    </div>
-                </div>
+  const input =
+    "w-full p-3 border border-gray-300 rounded-xl shadow-sm outline-none focus:ring-2 focus:ring-blue-500";
 
-                {/* Section 2: Route Details */}
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-                    <div className="flex items-center gap-2 mb-6 border-b pb-4">
-                        <MapPin className="w-5 h-5 text-gray-500" />
-                        <h2 className="text-xl font-bold text-gray-800">Route Details</h2>
-                    </div>
+  return (
+    <div className="flex">
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="w-full max-w-3xl space-y-6"
+      >
+        {/* RIDER + DRIVER */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm">
+          <div className="flex items-center gap-2 mb-4 border-b pb-3">
+            <User className="w-5 h-5 text-gray-500" />
+            <h2 className="font-semibold">Rider & Driver</h2>
+          </div>
 
-                    <div className="space-y-5">
-                        <div className="space-y-2">
-                            <label className="text-sm font-semibold text-gray-700">Pickup Location *</label>
-                            <input
-                                {...register("pickup", { required: "Pickup address is required" })}
-                                placeholder="Enter pickup address"
-                                className={`w-full p-3 bg-gray-50 border ${errors.pickup ? 'border-red-500' : 'border-gray-200'} rounded-xl outline-none focus:ring-2 focus:ring-blue-500`}
-                            />
-                            {errors.pickup && <p className="text-red-500 text-xs mt-1">{errors.pickup.message}</p>}
-                        </div>
+          <div className="grid grid-cols-2 gap-4">
+            <select
+              {...register("rider")}
+              className={input}
+              onChange={(e) => setRiderStore(e.target.value)}
+            >
+              <option value="">Select Rider</option>
+              {riders?.map((item: any) => (
+                <option key={item.riderId} value={item.riderId}>
+                  {item.fullName}
+                </option>
+              ))}
+            </select>
 
-                        <div className="space-y-2">
-                            <label className="text-sm font-semibold text-gray-700">Destination *</label>
-                            <input
-                                {...register("destination", { required: "Destination address is required" })}
-                                placeholder="Enter destination address"
-                                className={`w-full p-3 bg-gray-50 border ${errors.destination ? 'border-red-500' : 'border-gray-200'} rounded-xl outline-none focus:ring-2 focus:ring-blue-500`}
-                            />
-                            {errors.destination && <p className="text-red-500 text-xs mt-1">{errors.destination.message}</p>}
-                        </div>
-                    </div>
-                </div>
+            <select
+              {...register("driver")}
+              className={input}
+              onChange={(e) => setDriverStore(e.target.value)}
+            >
+              <option value="">Select Driver</option>
 
-                {/* Section 3: Schedule */}
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-                    <div className="flex items-center gap-2 mb-6 border-b pb-4">
-                        <Calendar className="w-5 h-5 text-gray-500" />
-                        <h2 className="text-xl font-bold text-gray-800">Schedule</h2>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                        <div className="space-y-2">
-                            <label className="text-sm font-semibold text-gray-700">Date</label>
-                            <input
-                                type="date"
-                                {...register("date", { required: "Date is required" })}
-                                className={`w-full p-3 bg-gray-50 border ${errors.date ? 'border-red-500' : 'border-gray-200'} rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-gray-500`}
-                            />
-                            {errors.date && <p className="text-red-500 text-xs mt-1">{errors.date.message}</p>}
-                        </div>
-
-                        <div className="space-y-2">
-                            <label className="text-sm font-semibold text-gray-700">Time</label>
-                            <input
-                                type="time"
-                                {...register("time", { required: "Time is required" })}
-                                className={`w-full p-3 bg-gray-50 border ${errors.time ? 'border-red-500' : 'border-gray-200'} rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-gray-500`}
-                            />
-                            {errors.time && <p className="text-red-500 text-xs mt-1">{errors.time.message}</p>}
-                        </div>
-
-                        <div className="space-y-2">
-                            <label className="text-sm font-semibold text-gray-700">Ride Type</label>
-                            <select
-                                {...register("rideType", { required: "Select ride type" })}
-                                className={`w-full p-3 bg-gray-50 border ${errors.rideType ? 'border-red-500' : 'border-gray-200'} rounded-xl outline-none focus:ring-2 focus:ring-blue-500 appearance-none`}
-                            >
-                                <option value="Medical">Medical</option>
-                                <option value="Standard">Standard</option>
-                                <option value="Executive">Executive</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div className="space-y-2">
-                        <label className="text-sm font-semibold text-gray-700">Notes</label>
-                        <textarea
-                            {...register("notes")}
-                            rows={4}
-                            placeholder="Special instructions..."
-                            className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                        />
-                    </div>
-                </div>
-
-                {/* Action Button */}
-                <button
-                    type="submit"
-                    className="flex items-center justify-center gap-3 bg-[#007bff] hover:bg-blue-600 text-white font-bold py-4 px-8 rounded-xl transition-all duration-200 shadow-lg active:scale-95 w-full md:w-auto"
-                >
-                    <Send className="w-5 h-5 fill-current" />
-                    Dispatch Ride
-                </button>
-
-            </form>
+              {drivers?.map((item: any) => (
+                <option key={item.driverId} value={item.driverId}>
+                  {item.fullName}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
-    );
+
+        {/* ROUTE */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm">
+          <h2 className="font-semibold mb-4 flex items-center gap-2">
+            <MapPin className="w-5 h-5" />
+            Route Details
+          </h2>
+
+          {/* PICKUP */}
+          <Autocomplete
+            onLoad={(a) => (pickupRef.current = a)}
+            onPlaceChanged={() => {
+              const place = pickupRef.current?.getPlace();
+              if (!place?.geometry) return;
+
+              setPickup({
+                address: place.formatted_address || "",
+                coordinates: {
+                  lat: place.geometry.location?.lat() || 0,
+                  lng: place.geometry.location?.lng() || 0,
+                },
+              });
+            }}
+          >
+            <input
+              {...register("pickup")}
+              className={`${input} mb-4`}
+              placeholder="Pickup location"
+            />
+          </Autocomplete>
+
+          {/* STOPS */}
+          <div className="space-y-3">
+            <div className="flex justify-between items-center">
+              <p className="font-medium">Stops (optional)</p>
+              <button
+                type="button"
+                onClick={addStop}
+                className="flex items-center gap-1 text-blue-600"
+              >
+                <Plus size={18} /> Add Stop
+              </button>
+            </div>
+
+            {stops.map((_, index) => (
+              <div key={index} className="flex gap-2 items-center">
+                <Autocomplete
+                  onLoad={(a) => (stopRefs.current[index] = a)}
+                  onPlaceChanged={() => {
+                    const place =
+                      stopRefs.current[index]?.getPlace();
+
+                    if (!place?.geometry) return;
+
+                    updateStop(index, place);
+                  }}
+                >
+                  <input
+                    className={input}
+                    placeholder={`Stop ${index + 1}`}
+                  />
+                </Autocomplete>
+
+                <button
+                  type="button"
+                  onClick={() => removeStop(index)}
+                  className="text-red-500"
+                >
+                  <Minus />
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {/* DESTINATION */}
+          <Autocomplete
+            onLoad={(a) => (destinationRef.current = a)}
+            onPlaceChanged={() => {
+              const place = destinationRef.current?.getPlace();
+              if (!place?.geometry) return;
+
+              setDestination({
+                address: place.formatted_address || "",
+                coordinates: {
+                  lat: place.geometry.location?.lat() || 0,
+                  lng: place.geometry.location?.lng() || 0,
+                },
+              });
+            }}
+          >
+            <input
+              {...register("destination")}
+              className={`${input} mt-4`}
+              placeholder="Destination"
+            />
+          </Autocomplete>
+        </div>
+
+        {/* SCHEDULE */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm">
+          <div className="grid grid-cols-2 gap-4">
+            <input type="date" {...register("date")} className={input} />
+            <input type="time" {...register("time")} className={input} />
+          </div>
+        </div>
+
+        {/* NOTES */}
+        <textarea
+          {...register("notes")}
+          className={input}
+          rows={4}
+          placeholder="Notes..."
+        />
+
+        {/* SUBMIT */}
+        <button
+          type="submit"
+          className="w-full bg-blue-600 text-white py-3 rounded-xl flex items-center justify-center gap-2"
+        >
+          <Send className="w-5 h-5" />
+          Dispatch Ride
+        </button>
+      </form>
+    </div>
+  );
 };
 
 export default DispatchForm;

@@ -8,9 +8,5 @@ export const AuthContext = createContext<IValue>({
 
   refetchUser: async () => {
     throw new Error("refetchUser not initialized");
-  },
-
-  // setAuthUser: () => {
-  //   throw new Error("setAuthUser not initialized");
-  // },
+  }
 });

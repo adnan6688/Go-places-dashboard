@@ -31,6 +31,8 @@ export default function MonitorMap() {
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAP
   });
 
+  
+
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
 

@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from 'react';
-import { GoogleMap, useJsApiLoader, OverlayView } from '@react-google-maps/api';
+import { GoogleMap, OverlayView } from '@react-google-maps/api';
 
-// ম্যাপের স্টাইল (ডার্ক মোড) - আগের মতোই
+
 const mapStyles = [
   { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
   { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
@@ -10,7 +10,6 @@ const mapStyles = [
   { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#2c5f72" }] },
 ];
 
-// রাইডারদের লিস্ট - 'profilePic' যোগ করা হয়েছে
 const riders = [
   {
     id: 1,
@@ -19,7 +18,7 @@ const riders = [
     lat: 40.7128,
     lng: -74.0060,
     isActive: true,
-    // ছবির লিঙ্ক (আপনার কাছে ছবি থাকলে সেগুলোর লিঙ্ক বসান, আমি স্যাম্পল লিঙ্ক দিচ্ছি)
+
     profilePic: "https://randomuser.me/api/portraits/men/32.jpg"
   },
   {
@@ -49,23 +48,21 @@ const riders = [
   }
 ];
 
-const containerStyle = { width: '100%', height: '100%' }; // প্যারেন্ট ডিভ এর পুরোটা নেবে
+const containerStyle = { width: '100%', height: '100%' }; 
 const center = { lat: 40.7128, lng: -74.0060 };
 
 const GoogleMapComponent: React.FC = () => {
-  const { isLoaded } = useJsApiLoader({
-    id: 'google-map-script',
-    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAP
-  });
+
+
 
   const [map, setMap] = useState<google.maps.Map | null>(null);
 
-  console.log(map)
+
+
   const onLoad = useCallback((map: google.maps.Map) => {
     setMap(map);
   }, []);
 
-  if (!isLoaded) return <div className=" w-full flex items-center justify-center bg-[#1a1a1a] text-white text-xl">Loading Maps...</div>;
 
   return (
     <div className="relative h-full  overflow-hidden">
@@ -79,7 +76,7 @@ const GoogleMapComponent: React.FC = () => {
           disableDefaultUI: true,
         }}
       >
-        {riders.map((rider) => (
+        {riders?.map((rider) => (
           <OverlayView
             key={rider.id}
             position={{ lat: rider.lat, lng: rider.lng }}
