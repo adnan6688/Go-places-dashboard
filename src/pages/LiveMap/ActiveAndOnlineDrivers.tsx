@@ -1,40 +1,54 @@
 import React from 'react';
-import { Navigation, Car, Clock, User } from 'lucide-react';
+import { Navigation, Car, Clock, User, CarIcon } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { liveMapApi } from './mapApiData';
+import SmallLoading from '../../Loading/SmallLoading';
 
 // --- Types ---
-interface Trip {
-  id: number;
-  passenger: string;
+type Trip = {
+  rideId: string;
+  riderName: string;
   destination: string;
-  driver: string;
-  startTime: string;
-}
+  driverName: string;
+  driverImage: string;
+  startedAt: string;
+  status: "pending" | "accepted" | "picked" | "started" | "completed" | "cancelled";
+};
 
-interface Driver {
-  id: number;
+type Driver = {
+  activeRideId: string | null;
+  driverId: string;
+  lat: number;
+  lng: number;
   name: string;
-  car: string;
-  color: string;
-  isOnline: boolean;
-}
+  profilePhoto: string | null;
+  status: "free" | "busy" | "offline" | string;
+  vehicleCategory: string;
+};
 
 
-const activeTrips: Trip[] = [
-  { id: 1, passenger: "Sarah Johnson", destination: "City Hospital", driver: "James Wilson", startTime: "09:30 AM" },
-  { id: 2, passenger: "David Thompson", destination: "Physical Therapy Center", driver: "Linda Martinez", startTime: "10:45 AM" },
-];
-
-const onlineDrivers: Driver[] = [
-  { id: 1, name: "James Wilson", car: "2022 Toyota Camry", color: "Silver", isOnline: true },
-  { id: 2, name: "Maria Garcia", car: "2023 Honda Accord", color: "Black", isOnline: true },
-  { id: 3, name: "Linda Martinez", car: "2023 Chevrolet Malibu", color: "Blue", isOnline: true },
-];
 
 const ActiveAndOnlineDrivers: React.FC = () => {
+
+
+
+  const { data, isLoading: onlinedriverLoading } = useQuery({
+    queryKey: ['live_map_data'],
+    queryFn: liveMapApi
+  })
+
+
+
+  const driversOline = data?.onlineDrivers || []
+  const activeTripsdata = data?.activeTrips || []
+
+  
+  console.log(activeTripsdata)
+
   return (
     <div className=" ">
       <div className=" grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
+
         {/* Active Trips Section */}
         <section className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
           <div className="flex items-center gap-2 mb-6">
@@ -43,50 +57,158 @@ const ActiveAndOnlineDrivers: React.FC = () => {
           </div>
 
           <div className="space-y-4">
-            {activeTrips.map((trip) => (
-              <div key={trip.id} className="flex gap-4 p-4 rounded-xl border border-gray-100 hover:bg-slate-50 transition-colors">
-                <div className="shrink-0 w-10 h-10 bg-emerald-50 rounded-full flex items-center justify-center">
-                  <Navigation className="text-emerald-500 w-5 h-5 rotate-45" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-slate-800">
-                    {trip.passenger} <span className="text-slate-400">→</span> {trip.destination}
-                  </h3>
-                  <p className="text-sm text-slate-500 mt-1">Driver: {trip.driver}</p>
-                  <div className="flex items-center gap-1 mt-2 text-xs text-slate-400">
-                    <Clock className="w-3 h-3" />
-                    <span>Started {trip.startTime}</span>
+            {activeTripsdata?.map((trip: Trip) => {
+              return (
+                <div
+                  key={trip.rideId}
+                  className="flex items-start justify-between p-4 rounded-2xl border border-slate-100 bg-white shadow transition-all"
+                >
+                  {/* LEFT ICON */}
+                  <div className="shrink-0 w-11 h-11 rounded-full bg-emerald-50 flex items-center justify-center">
+                    <Navigation className="text-emerald-500 w-5 h-5 rotate-45" />
+                  </div>
+
+                  {/* MAIN CONTENT */}
+                  <div className="flex-1 ml-4">
+                    {/* ROUTE */}
+                    <h3 className="font-semibold text-slate-800 leading-snug">
+                      {trip.riderName}
+                      <span className="mx-2 text-slate-400">→</span>
+                      <span className="text-slate-600 font-medium">
+                        {trip.destination}
+                      </span>
+                    </h3>
+
+                    {/* DRIVER INFO */}
+                    <div className="flex items-center gap-2 mt-2">
+                      <div className="w-6 h-6 rounded-full bg-slate-100 overflow-hidden flex items-center justify-center">
+                        {trip.driverImage ? (
+                          <img
+                            src={trip.driverImage}
+                            alt="driver"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <User className="w-3.5 h-3.5 text-slate-400" />
+                        )}
+                      </div>
+
+                      <p className="text-sm text-slate-500">
+                        Driver:{" "}
+                        <span className="font-medium text-slate-700">
+                          {trip.driverName}
+                        </span>
+                      </p>
+                    </div>
+
+                    {/* STATUS + TIME */}
+                    <div className="flex items-center justify-between mt-3">
+                      {/* STATUS BADGE */}
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] rounded-full bg-amber-50 text-amber-600 border border-amber-100">
+                        <CarIcon className="w-3.5 h-3.5" />
+                        {trip.status}
+                      </span>
+
+                      {/* TIME */}
+                      <div className="flex items-center gap-1 text-xs text-slate-400">
+                        <Clock className="w-3.5 h-3.5" />
+                        <span>
+                          Started{" "}
+                          {new Date(trip.startedAt).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
 
         {/* Online Drivers Section */}
-        <section className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+        <section className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
           <div className="flex items-center gap-2 mb-6">
             <Car className="text-blue-500 w-5 h-5" />
             <h2 className="text-xl font-bold text-slate-800">Online Drivers</h2>
           </div>
 
           <div className="space-y-4">
-            {onlineDrivers.map((driver) => (
-              <div key={driver.id} className="flex items-center justify-between p-4 rounded-xl border border-gray-100 hover:bg-slate-50 transition-colors">
-                <div className="flex items-center gap-4">
-                  <div className="shrink-0 w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center">
-                    <User className="text-blue-400 w-5 h-5" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-slate-800">{driver.name}</h3>
-                    <p className="text-sm text-slate-500">{driver.car} · {driver.color}</p>
-                  </div>
-                </div>
-                {driver.isOnline && (
-                  <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-                )}
+            {onlinedriverLoading ? (
+
+              <div className="p-6 text-center text-slate-500">
+                <SmallLoading message='Loading Drivers....'></SmallLoading>
               </div>
-            ))}
+            ) : driversOline?.length > 0 ? (
+              // ✅ Data List
+              driversOline.map((driver: Driver) => {
+                const isBusy = !!driver.activeRideId;
+
+                return (
+                  <div
+                    key={driver.driverId}
+                    className="flex items-center justify-between p-4 rounded-2xl border border-slate-100 bg-white  shadow transition-all"
+                  >
+                    {/* LEFT SIDE */}
+                    <div className="flex items-center gap-4">
+                      <div className="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center overflow-hidden">
+                        {driver?.profilePhoto ? (
+                          <img
+                            src={driver.profilePhoto}
+                            alt="driver"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <User className="text-slate-400 w-5 h-5" />
+                        )}
+                      </div>
+
+                      <div>
+                        <h3 className="font-semibold text-slate-800">
+                          {driver.name}
+                        </h3>
+
+                        <p className="text-xs text-slate-500 flex items-center gap-2">
+                          <CarIcon /> {driver.vehicleCategory}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* RIGHT SIDE STATUS */}
+                    <div className="text-right">
+                      {isBusy ? (
+                        <div className="flex flex-col items-end gap-1">
+                          <span className="px-3 py-1 text-xs font-medium rounded-full bg-red-50 text-red-600 border border-red-100">
+                            🔴 Ride active now
+                          </span>
+
+                          <span className="text-[11px] text-slate-400">
+                            Driver is currently on trip
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-end gap-1">
+                          <span className="px-3 py-1 text-xs font-medium rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100">
+                            🟢 Available
+                          </span>
+
+                          <span className="text-[11px] text-slate-400">
+                            Ready for new ride
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              // ❌ Empty State
+              <div className="p-6 text-center text-slate-400">
+                No drivers found
+              </div>
+            )}
           </div>
         </section>
 

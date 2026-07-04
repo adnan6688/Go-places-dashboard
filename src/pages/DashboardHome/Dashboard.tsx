@@ -7,10 +7,17 @@ import RidesActivity from "./RidesActivity";
 import RevenueChart from "./RevenueChart";
 import { useQuery } from "@tanstack/react-query";
 import { dashboardOverView } from "../../api/auth.api";
+import { useEffect } from "react";
+import { socket } from "../../socket/socketConnect";
 
 
 
 export default function Dashboard() {
+
+
+
+
+
   const { title, subtitle } = useDashboardTitle();
 
   const { data } = useQuery({
@@ -80,8 +87,22 @@ export default function Dashboard() {
     },
   ];
 
+  useEffect(() => {
+    socket.connect();
 
+    socket.on("connect", () => {
+      console.log("Socket connected:", socket.id);
+    });
 
+    socket.on("disconnect", () => {
+      console.log("Socket disconnected");
+    });
+
+    return () => {
+      socket.off("connect");
+      socket.off("disconnect");
+    };
+  }, []);
 
 
 

@@ -1,26 +1,8 @@
-// import axios from "axios";
-
-// const axiosInstance = axios.create({
-//   baseURL: 'https://come-nanny-theme.ngrok-free.dev/api/v1',
-//   headers: {
-//     'ngrok-skip-browser-warning': 'true'
-//   },
-//   withCredentials: true
-// });
-
-// export default axiosInstance;
-
-
-
-
-// https://go-place.cenedypalma.com/
-
-// https://come-nanny-theme.ngrok-free.dev
 
 import axios from "axios";
 
 const axiosInstance = axios.create({
-  baseURL: 'https://go-place.cenedypalma.com/api/v1',
+  baseURL: import.meta.env.VITE_BASE_URL,
   headers: {
     'ngrok-skip-browser-warning': 'true'
   },

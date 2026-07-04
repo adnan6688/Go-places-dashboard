@@ -22,3 +22,36 @@ export const dispatchDrivers = async (riderId: string) => {
         console.log(err)
     }
 }
+
+
+
+
+type Coordinates = {
+    lat: number;
+    lng: number;
+};
+
+type Location = {
+    address: string;
+    coordinates: Coordinates;
+};
+
+type Stop = {
+    address: string;
+    coordinates: Coordinates;
+};
+
+export type TRideRequest = {
+    driverUserId: string;
+    riderUserId: string;
+    pickupLocation: Location;
+    dropoffLocation: Location;
+    stops?: Stop[]; 
+    scheduledAt: string;
+    notes?: string;
+};
+export const manualDisptach = async (data : TRideRequest) => {
+  
+    const result = await axiosInstance.post('/admin/manual-ride/dispatch', data)
+    return result
+}
