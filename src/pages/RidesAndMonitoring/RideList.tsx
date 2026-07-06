@@ -1,5 +1,7 @@
+import { useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router';
+import { monitoringData } from './monitoringApi';
 
 // --- Types & Mock Data ---
 type RideStatus = 'in-progress' | 'completed' | 'scheduled' | 'canceled';
@@ -28,6 +30,9 @@ const RIDE_DATA: Ride[] = [
 ];
 
 const RideList = () => {
+
+
+
     const [activeTab, setActiveTab] = useState<'All' | 'Upcoming' | 'Active' | 'Completed'>('All');
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -58,6 +63,18 @@ const RideList = () => {
             default: return base;
         }
     };
+
+    const {data:ridsMonitoringData , isLoading} = useQuery({
+        queryKey : ['monitoring_data'],
+        queryFn : monitoringData
+    })
+
+
+    console.log(ridsMonitoringData)
+
+
+
+
 
     return (
         <div className=" text-slate-700">
