@@ -1,6 +1,33 @@
 import { CalendarDays, Car, ExternalLink, MapPin, Phone, Star, User, type LucideIcon } from 'lucide-react';
 
-const UniqueDetailsCard = () => {
+
+type TDetailsData = {
+
+    driver: {
+        currentLocation: { lng: number, lat: number },
+        driverType: string,
+        fullName: string,
+        licenseStatus: string | null,
+        phone: string | null,
+        userId: string,
+        vehicle: {
+            category: string,
+            color: string,
+            licensePlate: string,
+            model: string,
+            totalSeatCount: number,
+            year: number
+        }
+    }
+
+}
+
+const UniqueDetailsCard = (data: TDetailsData) => {
+
+
+
+console.log(data , "driver")
+
     return (
         <div className="">
             <div className="my-4 space-y-8">
@@ -31,7 +58,7 @@ const UniqueDetailsCard = () => {
                                         <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700 mb-2">
                                             <Car size={14} /> Active Driver
                                         </span>
-                                        <h4 className="text-[18px] sm:text-xl font-extrabold text-gray-900">Rakib Ahmed</h4>
+                                        <h4 className="text-[18px] sm:text-xl font-extrabold text-gray-900"> {data?.driver?.fullName} </h4>
                                         <div className="flex items-center text-yellow-500 mt-1">
                                             {[...Array(5)].map((_, i) => (
                                                 <Star key={i} size={16} fill={i < 4 ? "currentColor" : "none"} className={i < 4 ? "" : "text-gray-300"} />
@@ -49,7 +76,7 @@ const UniqueDetailsCard = () => {
                             </div>
 
                             <div className="space-y-5 bg-gray-50 rounded-xl p-6 border border-gray-100">
-                                <DetailItem icon={Car} label="Vehicle" value="Toyota Corolla" subValue="Dhaka-Metro-Ga-1234" />
+                                <DetailItem icon={Car} label="Vehicle" value={data?.driver?.vehicle?.model} subValue={data?.driver?.vehicle?.licensePlate} />
                                 <DetailItem icon={Phone} label="Contact" value="+880 1700-000000" isLink />
                                 <DetailItem icon={MapPin} label="Current Location" value="Near Gulshan-1 Circle" />
                                 <div className="flex justify-between border-b border-gray-200 pb-3">

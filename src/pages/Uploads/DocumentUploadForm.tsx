@@ -167,7 +167,7 @@ const DocumentUploadForm = ({ type }: props) => {
 
     const generalDocument = files['General Document'] ?? null
     const generalTraining = files['General Training'] ?? null
-    const mndotTraining = files['MnDOT Training'] ?? null
+    const mnDotTraining = files['MnDOT Training'] ?? null
     const drivingRecord = files['Driving Record'] ?? null
     const enrollmentAgreement = files['Enrollment Agreement'] ?? null
 
@@ -198,8 +198,8 @@ const DocumentUploadForm = ({ type }: props) => {
       formData.append("generalTraining", generalTraining);
     }
 
-    if (mndotTraining) {
-      formData.append("mndotTraining", mndotTraining);
+    if (mnDotTraining) {
+      formData.append("mnDotTraining", mnDotTraining);
     }
 
     if (drivingRecord) {

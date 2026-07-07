@@ -1,80 +1,86 @@
 import { useQuery } from '@tanstack/react-query';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router';
-import { monitoringData } from './monitoringApi';
+import { monitoringData, type TRide } from './monitoringApi';
+import Pagination from '../../components/Pagination';
+import { useDebounce } from '../../utils/debounce';
 
 // --- Types & Mock Data ---
-type RideStatus = 'in-progress' | 'completed' | 'scheduled' | 'canceled';
-type RideType = 'Medical' | 'Pharmacy' | 'Lab' | 'Dental' | 'Mental Health';
-
-interface Ride {
-    id: string;
-    rider: string;
-    driver: string;
-    route: string;
-    type: RideType;
-    cost: number;
-    status: RideStatus;
-    dateTime: string;
-}
-
-const RIDE_DATA: Ride[] = [
-    { id: 'RIDE-001', rider: 'Sarah Johnson', driver: 'James Wilson', route: '123 Main St → City Hospital', type: 'Medical', cost: 45, status: 'in-progress', dateTime: '2024-03-15 09:30 AM' },
-    { id: 'RIDE-002', rider: 'Michael Chen', driver: 'Maria Garcia', route: '456 Oak Ave → Downtown C...', type: 'Medical', cost: 38, status: 'completed', dateTime: '2024-03-14 02:15 PM' },
-    { id: 'RIDE-003', rider: 'Angela Rivera', driver: 'Kevin Brown', route: '789 Pine Rd → Pharmacy', type: 'Pharmacy', cost: 25, status: 'completed', dateTime: '2024-03-14 11:00 AM' },
-    { id: 'RIDE-004', rider: 'David Thompson', driver: 'Linda Martinez', route: '321 Elm St → Physical Thera...', type: 'Medical', cost: 55, status: 'in-progress', dateTime: '2024-03-15 10:45 AM' },
-    { id: 'RIDE-005', rider: 'Robert Kim', driver: 'James Wilson', route: '654 Maple Dr → Specialist O...', type: 'Medical', cost: 42, status: 'scheduled', dateTime: '2024-03-16 08:00 AM' },
-    { id: 'RIDE-006', rider: 'Patricia Williams', driver: 'Maria Garcia', route: '987 Cedar Ln → Lab Services', type: 'Lab', cost: 30, status: 'canceled', dateTime: '2024-03-13 03:30 PM' },
-    { id: 'RIDE-007', rider: 'Sarah Johnson', driver: 'Linda Martinez', route: '123 Main St → Dental Clinic', type: 'Dental', cost: 35, status: 'completed', dateTime: '2024-03-12 01:00 PM' },
-    { id: 'RIDE-008', rider: 'Michael Chen', driver: 'Steven Park', route: '456 Oak Ave → Mental Healt...', type: 'Mental Health', cost: 48, status: 'completed', dateTime: '2024-03-11 04:00 PM' },
-];
+type RideStatus =
+    | "in-progress"
+    | "accepted"
+    | "completed"
+    | "scheduled"
+    | "cancelled"
+    | "no_driver_found";
 
 const RideList = () => {
 
 
 
     const [activeTab, setActiveTab] = useState<'All' | 'Upcoming' | 'Active' | 'Completed'>('All');
-    const [searchQuery, setSearchQuery] = useState('');
 
-    const filteredRides = useMemo(() => {
-        return RIDE_DATA.filter((ride) => {
-            const matchesTab =
-                activeTab === 'All' ||
-                (activeTab === 'Upcoming' && ride.status === 'scheduled') ||
-                (activeTab === 'Active' && ride.status === 'in-progress') ||
-                (activeTab === 'Completed' && ride.status === 'completed');
 
-            const s = searchQuery.toLowerCase();
-            return matchesTab && (
-                ride.rider.toLowerCase().includes(s) ||
-                ride.driver.toLowerCase().includes(s) ||
-                ride.id.toLowerCase().includes(s)
-            );
-        });
-    }, [activeTab, searchQuery]);
+    const [currentPage, setCurrentpage] = useState<number>(1)
+    const [search, setSearch] = useState("");
+    const debounceSearch = useDebounce(search, 500);
+
+
 
     const getStatusStyles = (status: RideStatus) => {
-        const base = "px-3 py-1 rounded-full text-xs font-medium capitalize";
+
+        const base =
+            "px-3 py-1 rounded-full text-xs font-medium capitalize";
+
+
         switch (status) {
-            case 'in-progress': return `${base} bg-blue-50 text-blue-600`;
-            case 'completed': return `${base} bg-green-50 text-green-600`;
-            case 'scheduled': return `${base} bg-orange-50 text-orange-600`;
-            case 'canceled': return `${base} bg-red-50 text-red-600`;
-            default: return base;
+
+            case "in-progress":
+            case "accepted":
+                return `${base} bg-blue-50 text-blue-600`;
+
+
+            case "completed":
+                return `${base} bg-green-50 text-green-600`;
+
+
+            case "scheduled":
+                return `${base} bg-orange-50 text-orange-600`;
+
+
+
+
+            case "cancelled":
+            case "no_driver_found":
+                return `${base} bg-red-50 text-red-600`;
+
+
+            default:
+                return `${base} bg-gray-50 text-gray-600`;
         }
     };
 
-    const {data:ridsMonitoringData , isLoading} = useQuery({
-        queryKey : ['monitoring_data'],
-        queryFn : monitoringData
-    })
-
-
-    console.log(ridsMonitoringData)
+    const { data: ridsMonitoringData, isLoading } = useQuery({
+        queryKey: ["monitoring_data", currentPage, activeTab, debounceSearch],
+        queryFn: () => monitoringData(currentPage, activeTab.toLocaleLowerCase(), debounceSearch),
+    });
 
 
 
 
+
+
+    const monitorList = ridsMonitoringData?.rides || []
+    const pagination = ridsMonitoringData?.pagination || {}
+
+
+
+    const onPrev = () => {
+        setCurrentpage(currentPage - 1)
+    }
+    const onNext = () => {
+        setCurrentpage(currentPage + 1)
+    }
 
     return (
         <div className=" text-slate-700">
@@ -83,17 +89,17 @@ const RideList = () => {
                 {/* Responsive Tabs & Search Container */}
                 <div className="p-4 space-y-4 border-b border-gray-100 bg-gray-50/30">
                     <div className="flex flex-wrap gap-2">
-                        {['All', 'Upcoming', 'Active', 'Completed'].map((tab) => (
+                        {['All', 'Upcoming', 'Active', 'Completed', 'Cancelled'].map((tab: string) => (
                             <button
                                 key={tab}
                                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                 onClick={() => setActiveTab(tab as any)}
-                                className={`px-4 py-1.5 rounded-lg text-sm transition-all whitespace-nowrap ${activeTab === tab
+                                className={`px-4 py-1.5 cursor-pointer rounded-lg text-sm transition-all whitespace-nowrap ${activeTab === tab
                                     ? 'bg-white shadow-sm cursor-pointer border-gray-200 font-semibold text-blue-600'
                                     : 'text-gray-500 hover:bg-gray-100'
                                     }`}
                             >
-                                {tab} {tab === 'All' && <span className="ml-1 opacity-50">({RIDE_DATA.length})</span>}
+                                {tab} {tab === 'All' && <span className="ml-1 opacity-50">({ridsMonitoringData?.rides?.length})</span>}
                             </button>
                         ))}
                     </div>
@@ -102,38 +108,137 @@ const RideList = () => {
                         <span className="absolute inset-y-0 left-3 flex items-center text-gray-400">🔍</span>
                         <input
                             type="text"
+
                             placeholder="Search rider, driver, or ID..."
                             className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/20 outline-none"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
+                            // value={searchQuery}
+                            onChange={(e) => setSearch(e.target.value)}
                         />
                     </div>
                 </div>
 
                 {/* --- Mobile View (Cards) --- */}
                 <div className="md:hidden divide-y  divide-gray-300">
-                    {filteredRides.map((ride) => (
-                        <div key={ride.id} className="p-4 space-y-3">
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <div className="text-xs font-bold text-gray-400 uppercase">{ride.id}</div>
-                                    <div className="font-bold text-gray-900">{ride.rider}</div>
+                    {ridsMonitoringData?.rides?.map((ride: TRide) => (
+                        <div
+                            key={ride._id}
+                            className="p-4 space-y-4 border-b border-gray-100"
+                        >
+
+                            {/* Header */}
+                            <div className="flex justify-between items-start gap-3">
+
+                                <div className="min-w-0">
+
+                                    <p className="text-[11px] font-bold text-gray-400 uppercase truncate">
+                                        {ride.rider?.riderId}
+                                    </p>
+
+                                    <h3 className="font-semibold text-gray-900 truncate">
+                                        {ride.rider?.name}
+                                    </h3>
+
                                 </div>
-                                <div className={getStatusStyles(ride.status)}>{ride.status}</div>
+
+
+                                <span className={getStatusStyles(ride.status)}>
+                                    {ride.status.replaceAll("_", " ")}
+                                </span>
+
                             </div>
+
+
+
+                            {/* Driver */}
                             <div className="text-sm text-gray-600">
-                                <span className="text-gray-400">Driver:</span> {ride.driver}
+
+                                <span className="text-gray-400">
+                                    Driver:
+                                </span>{" "}
+
+                                <span className="font-medium">
+                                    {ride.driver}
+                                </span>
+
                             </div>
-                            <div className="text-xs text-gray-400 italic bg-gray-50 p-2 rounded">
-                                {ride.route}
+
+                            {/* Route */}
+                            <div className="bg-gray-50 rounded-lg p-3 space-y-2">
+
+
+                                <div className="flex items-center gap-2">
+
+                                    <span className="w-2 h-2 rounded-full bg-green-500"></span>
+
+                                    <p className="text-xs text-gray-700 truncate">
+                                        {ride.route?.pickup}
+                                    </p>
+
+                                </div>
+
+
+                                <div className="ml-0.75 h-3 border-l border-dashed border-gray-300"></div>
+
+
+
+                                <div className="flex items-center gap-2">
+
+                                    <span className="w-2 h-2 rounded-full bg-red-500"></span>
+
+                                    <p className="text-xs text-gray-500 truncate">
+                                        {ride.route?.dropoff}
+                                    </p>
+
+                                </div>
+
+
                             </div>
-                            <div className="flex justify-between items-center pt-2">
-                                <span className="text-xs px-2 py-1 bg-gray-100 rounded-full text-gray-500">{ride.type}</span>
-                                <span className="font-bold text-lg">${ride.cost}</span>
+
+
+
+
+                            {/* Type + Cost */}
+                            <div className="flex justify-between items-center">
+
+
+                                <span
+                                    className={`
+        text-xs 
+        px-3 
+        py-1 
+        rounded-full 
+        font-medium
+        ${ride.rideType === "scheduled"
+                                            ? "bg-blue-50 text-blue-600"
+                                            : ride.rideType === "assist"
+                                                ? "bg-purple-50 text-purple-600"
+                                                : ride.rideType === "wheelchair"
+                                                    ? "bg-green-50 text-green-600"
+                                                    : "bg-gray-100 text-gray-600"
+                                        }
+    `}
+                                >
+                                    {ride.rideType}
+                                </span>
+
+
+                                <span className="font-bold text-lg text-gray-900">
+
+                                    ${ride.cost.toFixed(2)}
+
+                                </span>
+
+
                             </div>
-                            <div className="text-[10px] text-gray-400 uppercase tracking-tighter">
-                                {ride.dateTime}
+
+                            {/* Date */}
+                            <div className="text-xs text-gray-400">
+
+                                {new Date(ride.dateTime).toLocaleString()}
+
                             </div>
+
+
                         </div>
                     ))}
                 </div>
@@ -155,17 +260,58 @@ const RideList = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 text-sm">
-                            {filteredRides.map((ride) => (
-                                <tr key={ride.id} className="hover:bg-blue-50/30 transition-colors group">
-                                    <td className="px-6 py-4 font-semibold text-gray-900">{ride.id}</td>
-                                    <td className="px-6 py-4">{ride.rider}</td>
+                            {monitorList?.map((ride: TRide) => (
+                                <tr key={ride._id} className="hover:bg-blue-50/30 transition-colors group">
+                                    <td className="px-6 py-4 font-semibold text-gray-900">{ride.rider?.riderId}</td>
+                                    <td className="px-6 py-4">{ride?.rider?.name}</td>
                                     <td className="px-6 py-4 text-gray-600">{ride.driver}</td>
-                                    <td className="px-6 py-4 text-gray-400 text-xs max-w-200 truncate" title={ride.route}>
-                                        {ride.route}
+                                    <td className="px-6 py-4">
+                                        <div className="flex flex-col gap-1 max-w-55">
+
+                                            <div
+                                                className="flex items-center gap-2 text-xs text-gray-600 truncate"
+                                                title={ride.route?.pickup}
+                                            >
+                                                <span className="text-green-500">📍</span>
+                                                <span className="truncate">
+                                                    {ride.route?.pickup || "Unknown pickup"}
+                                                </span>
+                                            </div>
+
+
+                                            <div
+                                                className="flex items-center gap-2 text-xs text-gray-400 truncate"
+                                                title={ride.route?.dropoff}
+                                            >
+                                                <span className="text-red-500">🏁</span>
+                                                <span className="truncate">
+                                                    {ride.route?.dropoff || "Unknown dropoff"}
+                                                </span>
+                                            </div>
+
+                                        </div>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className="px-2.5 py-1 bg-gray-100 text-gray-500 rounded-full text-[11px] font-medium">
-                                            {ride.type}
+                                        <span
+                                            className={`
+        text-xs 
+        px-3 
+        py-1 
+        rounded-full 
+        font-medium
+        ${ride.rideType === "standard"
+                                                    ? "bg-blue-50 text-blue-600"
+                                                    : ride.rideType === "assist"
+                                                        ? "bg-purple-50 text-purple-600"
+                                                        : ride.rideType === "wheelchair"
+                                                            ? "bg-green-50 text-green-600"
+                                                            : ride.rideType === "scheduled"
+                                                                ? "bg-orange-50 text-orange-600"
+                                                                : "bg-gray-100 text-gray-600"
+                                                }
+    `}
+                                        >
+                                            {ride.rideType}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 text-right font-bold text-gray-900">${ride.cost}</td>
@@ -176,7 +322,7 @@ const RideList = () => {
                                     </td>
                                     <td className="px-6 py-4 text-gray-400 whitespace-nowrap text-xs">{ride.dateTime}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <Link to={`/dashboard/ridesandmonitoring/monitorDetails/:id`}>
+                                        <Link to={`/dashboard/ridesandmonitoring/monitorDetails/${ride?._id}`}>
                                             <button className="inline-flex items-center px-4 py-2 border border-transparent text-xs font-semibold rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 shadow-sm">
                                                 View Details
                                             </button>
@@ -189,12 +335,15 @@ const RideList = () => {
                 </div>
 
                 {/* Empty State */}
-                {filteredRides.length === 0 && (
+                {ridsMonitoringData?.rides?.length === 0 && (
                     <div className="p-12 text-center text-gray-400 flex flex-col items-center">
                         <div className="text-4xl mb-2">🔎</div>
                         <p>No rides found matching your search or filters.</p>
                     </div>
                 )}
+            </div>
+            <div>
+                <Pagination onNext={onNext} onPrev={onPrev} totalPages={pagination?.totalPages} currentPage={currentPage}></Pagination>
             </div>
         </div>
     );

@@ -131,7 +131,7 @@ const DriverRegistration: React.FC = () => {
             generalDocument: licenseCopy,
             drivingRecord: dotCert,
             generalTraining: insuranceProof,
-            mndotTraining: registration,
+            mnDotTraining: registration,
             vehicle: {
                 model: vehicleMakeModel,
                 color: vehicleColor,
@@ -161,7 +161,7 @@ const DriverRegistration: React.FC = () => {
         formData.append("generalDocument", finalObj?.generalDocument as File);
         formData.append("drivingRecord", finalObj.drivingRecord as File);
         formData.append("generalTraining", finalObj.generalTraining as File);
-        formData.append("mndotTraining", finalObj.mndotTraining as File);
+        formData.append("mnDotTraining", finalObj.mnDotTraining as File);
 
         // vehicle object → stringify
         formData.append(
