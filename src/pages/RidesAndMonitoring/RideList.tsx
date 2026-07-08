@@ -12,7 +12,8 @@ type RideStatus =
     | "completed"
     | "scheduled"
     | "cancelled"
-    | "no_driver_found";
+    | "no_driver_found"
+    | "driver_arrived"
 
 const RideList = () => {
 
@@ -41,6 +42,8 @@ const RideList = () => {
 
 
             case "completed":
+                return `${base} bg-green-50 text-green-600`;
+            case "driver_arrived":
                 return `${base} bg-green-50 text-green-600`;
 
 
@@ -322,8 +325,17 @@ const RideList = () => {
                                     </td>
                                     <td className="px-6 py-4 text-gray-400 whitespace-nowrap text-xs">{ride.dateTime}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <Link to={`/dashboard/ridesandmonitoring/monitorDetails/${ride?._id}`}>
-                                            <button className="inline-flex items-center px-4 py-2 border border-transparent text-xs font-semibold rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 shadow-sm">
+                                        <Link
+                                            to={`/dashboard/ridesandmonitoring/monitorDetails/${ride?._id}`}
+                                            className={`${ride?.status === "no_driver_found" || ride?.status === "cancelled"
+                                                    ? "pointer-events-none opacity-50 cursor-not-allowed"
+                                                    : ""
+                                                }`}
+                                        >
+                                            <button
+                                                disabled={ride?.status === "no_driver_found"}
+                                                className="inline-flex items-center px-4 py-2 border border-transparent text-xs font-semibold rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 shadow-sm"
+                                            >
                                                 View Details
                                             </button>
                                         </Link>

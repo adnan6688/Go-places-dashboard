@@ -3,25 +3,33 @@ import DetailsCard from "./DetailsCard";
 import MonitorMap from "./MonitorMap";
 import { useQuery } from "@tanstack/react-query";
 import { monitoringDetails } from "./monitoringApi";
+import GlobalLoading from "../../Loading/Loading";
 
 export default function MonitorDteails() {
 
     const {id} = useParams()
 
-    const {data} = useQuery({
+    const {data , isLoading} = useQuery({
         queryKey : ['deatils_of_ride'],
         queryFn : ()=> monitoringDetails(id as string)
     })
 
-    console.log(data)
+
+    if(isLoading){
+
+        return <div>
+            <GlobalLoading message="Monitoring Details Loading..."></GlobalLoading>
+        </div>
+    }
+
 
     return (
         <div className="sm:p-3">
 
 
-            <MonitorMap></MonitorMap>
+            <MonitorMap route={data?.route} rider={data?.rider} driver={data?.driver}></MonitorMap>
 
-            <DetailsCard driver={data?.driver}></DetailsCard>
+            <DetailsCard route={data?.route} rider={data?.rider} driver={data?.driver}></DetailsCard>
         </div>
     )
 }
