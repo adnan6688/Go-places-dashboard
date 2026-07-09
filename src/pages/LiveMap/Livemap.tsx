@@ -4,15 +4,11 @@ import { useDashboardTitle } from "../../Config/sendLocation"
 import ActiveAndOnlineDrivers from "./ActiveAndOnlineDrivers"
 import GoogleMapComponent from "./GoogleMapComponent"
 
-
-const libraries: ("places")[] = ["places"];
-
-
+// FIX: Add "maps" to the libraries array here
+const libraries: ("places" | "maps")[] = ["places", "maps"];
 
 export default function Livemap() {
-
   const { title, subtitle } = useDashboardTitle()
-
 
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
@@ -20,19 +16,13 @@ export default function Livemap() {
     libraries,
   });
 
-
-
   if (!isLoaded) return <div className=" w-full flex items-center justify-center bg-[#1a1a1a] text-white text-xl">Loading Maps...</div>;
 
   return (
     <div className="p-0 sm:p-3">
-
       <div>
         <DashboardHeading title={title} subtitle={subtitle}></DashboardHeading>
-
       </div>
-
-
 
       <div className="h-150 my-4 w-full relative mb-10 overflow-hidden rounded-2xl ">
         <GoogleMapComponent />
@@ -41,9 +31,6 @@ export default function Livemap() {
       <div>
         <ActiveAndOnlineDrivers></ActiveAndOnlineDrivers>
       </div>
-
-
-
     </div>
   )
 }

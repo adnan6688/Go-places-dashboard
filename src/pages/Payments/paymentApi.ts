@@ -84,9 +84,13 @@ export const paymentSummary = async () => {
 export const paymentDetailsApi = async (id? : string)=>{
     try{
         const res = await axiosInstance.get(`/admin/payments/${id}/details`)
+        console.log(res?.data)
         return res?.data?.data || {}
     }
     catch(err){
         console.log(err)
     }
 }
+
+
+

@@ -3,7 +3,10 @@ import DashboardHeading from "../../components/DashboardHeading"
 import { useDashboardTitle } from "../../Config/sendLocation"
 import DispatchForm from "./DispatchForm"
 import GlobalLoading from "../../Loading/Loading";
-const libraries: ("places")[] = ["places"];
+
+
+const libraries: ("places" | "maps")[] = ["places", "maps"]; // Must be EXACTLY this everywhere
+
 
 
 export default function ManualDispatch() {

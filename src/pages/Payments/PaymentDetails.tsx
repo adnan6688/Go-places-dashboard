@@ -78,6 +78,8 @@ const PaymentDetails = () => {
 
 
 
+
+
     return (
         <div className="w-full bg-gray-50 text-slate-900  sm:p-3">
             <div className=" space-y-6">
