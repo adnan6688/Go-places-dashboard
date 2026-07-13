@@ -45,7 +45,8 @@ export interface WithdrawalRequest {
 
 type Tparams = {
     status?: string,
-    page?: number
+    page?: number,
+    tripStatus? : string
 }
 export const getPaymentList = async (status?: string, page?: number) => {
 
@@ -81,13 +82,21 @@ export const paymentSummary = async () => {
 
 
 
-export const paymentDetailsApi = async (id? : string)=>{
-    try{
-        const res = await axiosInstance.get(`/admin/payments/${id}/details`)
-        console.log(res?.data)
+
+export const paymentDetailsApi = async (id?: string, page?: number , tripStatus? : string) => {
+    try {
+        const params: Tparams = {}
+        if (page) {
+            params.page = page
+        }
+        if(tripStatus){
+            params.tripStatus = tripStatus
+        }
+        const res = await axiosInstance.get(`/admin/payments/${id}/details`, { params })
+
         return res?.data?.data || {}
     }
-    catch(err){
+    catch (err) {
         console.log(err)
     }
 }

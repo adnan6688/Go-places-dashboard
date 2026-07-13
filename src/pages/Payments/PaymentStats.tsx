@@ -16,6 +16,7 @@ type StatItem = {
 const PaymentStats: React.FC = () => {
 
   const { data } = useQuery({ queryKey: ['summary'], queryFn: paymentSummary })
+  console.log(data)
 
   const summaryStats = data && {
     ...data.transactions,
