@@ -198,13 +198,7 @@ console.log(data)
                             >
                                 <div className="flex justify-between items-start">
                                     <div className="flex items-center gap-3">
-                                        <input
-                                            type="checkbox"
-                                            disabled={trip.paymentStatus.toLowerCase() === 'paid'}
-                                            checked={selectedTripIds.includes(trip.id)}
-                                            className="w-5 h-5 rounded-md border-gray-300 text-blue-600"
-                                            readOnly
-                                        />
+                                        
                                         <div>
                                             <p className=" text-sm text-gray-800">{trip.rider?.fullName}</p>
 
@@ -256,13 +250,14 @@ console.log(data)
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="text-gray-400 text-[13px]  uppercase tracking-widest border-b border-gray-50 bg-gray-50/50">
-                                    <th className="p-6 w-16 text-center">Select</th>
+                        
                                     <th className="p-6">Rider</th>
                                     <th className="p-6">Route</th>
                                     <th className="p-6">Date</th>
                                     <th className="p-6 text-center">Trips</th>
                                     <th className="p-6">Miles</th>
                                     <th className="p-6">Status</th>
+                                    <th className="p-6">Transfer Status</th>
                                     <th className="p-6 text-right">Driver Payout</th>
                                     <th className="p-6 text-right">Total Amount</th>
                                 </tr>
@@ -274,15 +269,7 @@ console.log(data)
 
                                         className={`hover:bg-blue-50/20 cursor-pointer transition-colors ${selectedTripIds.includes(trip.id) ? 'bg-blue-50/50' : ''}`}
                                     >
-                                        <td className="p-6 text-center">
-                                            <input
-                                                type="checkbox"
-                                                disabled={trip.status === 'paid'}
-                                                checked={selectedTripIds.includes(trip.id)}
-                                                className="w-4 h-4 rounded-md border-gray-300 text-blue-600"
-                                                readOnly
-                                            />
-                                        </td>
+                                     
                                         <td className="p-6">
                                             <p className=" text-gray-800 text-[14px]">{trip?.rider?.fullName}</p>
                                             <p className="text-[10px]  text-gray-400 uppercase">{trip.id}</p>
@@ -321,6 +308,12 @@ console.log(data)
                                                 </span>
                                             )}
                                         </td>
+
+                                   
+                                    
+<td className="p-6 text-gray-900">
+  {trip?.transactionStatusLabel}
+</td>
                                         <td className="p-6 text-center  text-gray-900">${trip?.billing?.driverPayout}</td>
                                         <td className="p-6 text-right  text-gray-900">${trip?.billing?.grossAmount}</td>
                                     </tr>
