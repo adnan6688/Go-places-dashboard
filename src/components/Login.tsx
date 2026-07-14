@@ -33,7 +33,7 @@ export default function Login() {
         },
         onError: (error : any) => {
             const message = error.response?.data?.message || "Something went wrong";
-
+            console.log(message)
             ToastMessage("error", message);
             // setPassLoad(false);
         }

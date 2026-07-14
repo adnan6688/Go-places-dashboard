@@ -46,7 +46,7 @@ export interface WithdrawalRequest {
 type Tparams = {
     status?: string,
     page?: number,
-    tripStatus? : string
+    tripStatus?: string
 }
 export const getPaymentList = async (status?: string, page?: number) => {
 
@@ -83,13 +83,13 @@ export const paymentSummary = async () => {
 
 
 
-export const paymentDetailsApi = async (id?: string, page?: number , tripStatus? : string) => {
+export const paymentDetailsApi = async (id?: string, page?: number, tripStatus?: string) => {
     try {
         const params: Tparams = {}
         if (page) {
             params.page = page
         }
-        if(tripStatus){
+        if (tripStatus) {
             params.tripStatus = tripStatus
         }
         const res = await axiosInstance.get(`/admin/payments/${id}/details`, { params })
@@ -101,5 +101,16 @@ export const paymentDetailsApi = async (id?: string, page?: number , tripStatus?
     }
 }
 
+export const transferAmount = async (paymentRequestId: string, trips: string[]) => {
+    try {
 
+        const response = await axiosInstance.post(`admin/payments/${paymentRequestId}/transfer`, {
+            tripIds: trips
+        });
 
+        return response.data;
+    } catch (error) {
+        console.error("Error in transferAmount API:", error);
+        throw error;
+    }
+};

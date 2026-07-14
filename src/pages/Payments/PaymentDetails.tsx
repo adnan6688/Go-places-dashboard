@@ -2,8 +2,10 @@ import { useQuery } from '@tanstack/react-query';
 import { Calendar, CheckCircle2, Clock, History, Navigation } from 'lucide-react';
 import { useState } from 'react';
 import { useParams } from 'react-router';
-import { paymentDetailsApi } from './paymentApi';
+import { paymentDetailsApi, transferAmount } from './paymentApi';
 import Pagination from '../../components/Pagination';
+import { ToastMessage } from '../../components/ToastMessage';
+import Swal from 'sweetalert2';
 
 interface DriverInfo {
     name: string;
@@ -29,22 +31,25 @@ const PaymentDetails = () => {
 
 
     const [currentPage, setCurrentPage] = useState<number>(1)
-    const [selectedTripIds, setSelectedTripIds] = useState<string[]>([]);
+
     const [filterStatus, setFilterStatus] = useState<'all' | 'paid' | 'unpaid'>('all');
+    const [Selected, setSelectedTripIds] = useState<string[]>([])
+    const [loading, setLoading] = useState<boolean>(false)
 
 
-    const { data } = useQuery({
-        queryKey: ['payment_datails', id, currentPage,filterStatus],
-        queryFn: () => paymentDetailsApi(id, currentPage ,filterStatus)
+    const { data, refetch } = useQuery({
+        queryKey: ['payment_datails', id, currentPage, filterStatus],
+        queryFn: () => paymentDetailsApi(id, currentPage, filterStatus)
     })
 
-console.log(data)
 
 
 
     const driverInformation = data?.request || {}
     const tripsData = data?.trips || []
     const meta = data?.meta || {}
+    const summary = data?.summary || {}
+
 
 
 
@@ -56,6 +61,111 @@ console.log(data)
         setCurrentPage(currentPage + 1)
     }
 
+    const handleSelectTrip = (tripId: string) => {
+        setSelectedTripIds((prevIds) => {
+            if (prevIds.includes(tripId)) {
+
+                return prevIds.filter((id) => id !== tripId);
+            } else {
+
+                return [...prevIds, tripId];
+            }
+        });
+    };
+
+    const handletransferAmount = async () => {
+
+        if (!Selected || Selected.length === 0) {
+            ToastMessage('error', 'Please select at least one trip to release funds')
+            return;
+        }
+
+
+        const amountToRelease = summary?.unpaidAmount?.toFixed(2) || "0.00";
+
+        const result = await Swal.fire({
+            html: `
+        <div class="text-left ">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-5">
+                <div>
+                    <h3 class="text-lg text-slate-900 ">Authorize Driver Payout</h3>
+                    <p class="text-xs text-slate-400 mt-0.5">Stripe Instant Connect Gateway</p>
+                </div>
+                <div class="relative w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-xl">
+                    🚕
+                    <span class="absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-20 animate-ping"></span>
+                </div>
+            </div>
+
+            <div class="bg-slate-950 text-white rounded-2xl p-5 shadow-inner space-y-3 relative overflow-hidden">
+                <div class="absolute -right-6 -bottom-6 text-7xl opacity-5 pointer-events-none select-none font-bold">🗺️</div>
+                
+                <div class="flex justify-between items-center">
+                    <span class=" text-slate-400  font-bold">Total Trips Selected</span>
+                    <span class=" bg-blue-500/20  font-semibold text-blue-400  px-2.5 py-0.5 rounded-full border border-blue-500/30">
+                        ${Selected.length} Rides
+                    </span>
+                </div>
+                
+                <div class="flex justify-between items-end pt-2 border-t border-white/10">
+                    <span class=" text-slate-400   font-semibold mb-1">Total Payout</span>
+                    <span class="text-3xl  text-emerald-400 ">
+                        <span class="text-sm font-medium text-emerald-500 mr-0.5">$</span>${amountToRelease}
+                    </span>
+                </div>
+            </div>
+
+            <div class="mt-4 p-3.5 bg-amber-50/60 rounded-xl border border-amber-100 flex gap-2.5 items-start">
+                <span class="text-base mt-0.5"></span>
+                <p class="text-[12px] text-amber-800 font-medium leading-relaxed">
+                    <strong>Instant Transfer:</strong> This action triggers a live API payload. Funds will reflect in the driver's linked bank account immediately.
+                </p>
+            </div>
+        </div>
+    `,
+            showCancelButton: true,
+            confirmButtonColor: '#10b981',
+            cancelButtonColor: '#f1f5f9',
+            confirmButtonText: 'Confirm & Release',
+            cancelButtonText: 'Decline',
+
+            background: '#ffffff',
+            reverseButtons: true,
+
+            customClass: {
+                popup: 'rounded-[2.2rem] p-8 shadow-2xl border border-slate-100 max-w-md',
+                confirmButton: 'w-full sm:w-auto rounded-xl px-6 py-4  text-white transition-all bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-500/20 active:scale-95',
+                cancelButton: 'w-full sm:w-auto rounded-xl px-6 py-4   text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-all active:scale-95'
+            },
+            buttonsStyling: false
+        });
+
+        if (!result.isConfirmed) return;
+
+        try {
+            setLoading(true);
+
+
+
+            await transferAmount(id as string, Selected);
+
+            ToastMessage('success', 'Success! Funds have been successfully released via Stripe')
+
+            setSelectedTripIds([]);
+
+
+            if (typeof refetch === 'function') {
+                refetch();
+            }
+
+        } catch (error: any) {
+            console.error("Payout failed:", error);
+
+            ToastMessage('error', error?.response?.data?.message || "Failed to release funds. Please try again.")
+        } finally {
+            setLoading(false);
+        }
+    };
 
 
     return (
@@ -104,23 +214,41 @@ console.log(data)
                             <div className="space-y-1">
                                 <div className="flex items-center gap-2 text-gray-400">
                                     <History className="w-4 h-4 text-emerald-500" />
-                                    <span className="text-[11px]  uppercase tracking-widest">Driver's Lifetime Earnings</span>
+                                    <span className="text-[11px] uppercase tracking-widest">Driver's Lifetime Earnings</span>
                                 </div>
-                                <div className="text-3xl  text-gray-800">
+                                <div className="text-3xl font-bold text-gray-800">
                                     <span className="text-lg text-gray-400 font-medium mr-1">$</span>
-                                    {driverInformation?.amount}
+                                    {/* Fallback to 0 if totalAmount is missing */}
+                                    {summary?.totalAmount?.toFixed(2) || "0.00"}
+                                </div>
+                            </div>
+
+                            {/* Optional: Brief earnings breakdown metrics */}
+                            <div className="grid grid-cols-2 gap-4 text-xs border-t border-b border-gray-100 py-3">
+                                <div>
+                                    <span className="text-gray-400 block">Already Paid</span>
+                                    <span className="font-semibold text-gray-700">${summary?.paidAmount?.toFixed(2) || "0.00"} ({summary?.paidTripCount} trips)</span>
+                                </div>
+                                <div>
+                                    <span className="text-gray-400 block">Pending Payout</span>
+                                    <span className="font-semibold text-amber-600">${summary?.unpaidAmount?.toFixed(2) || "0.00"} ({summary?.unpaidTripCount} trips)</span>
                                 </div>
                             </div>
 
                             {/* Admin Message Box */}
-                            <div className="p-5 bg-amber-50/50 rounded-3xl border border-amber-100/50 space-y-2">
-                                <div className="flex items-center gap-2 text-amber-700  text-[10px] uppercase">
-                                    <Clock className="w-3 h-3" /> Payout Request Pending
+                            {summary?.unpaidAmount > 0 && (
+                                <div className="p-5 bg-amber-50/50 rounded-3xl border border-amber-100/50 space-y-2">
+                                    <div className="flex items-center gap-2 text-amber-700 text-[10px] uppercase font-semibold tracking-wider">
+                                        <Clock className="w-3 h-3" /> Payout Request Pending
+                                    </div>
+                                    <p className="text-amber-800/80 text-sm leading-relaxed">
+                                        Admin Note: You are about to authorize a payout of{" "}
+                                        <span className="text-amber-900 font-black">${summary?.unpaidAmount?.toFixed(2)}</span> for{" "}
+                                        <span className="text-amber-900 font-black">{summary?.unpaidTripCount} trips</span>.
+                                        Please verify the trip details before releasing the amount.
+                                    </p>
                                 </div>
-                                <p className="  text-amber-800/80 font-bold leading-relaxed">
-                                    Admin Note: You are about to authorize a payout for <span className="text-amber-900 ">{selectedTripIds.length} trips</span>. Please verify the trip details before releasing the amount.
-                                </p>
-                            </div>
+                            )}
                         </div>
 
                         {/* Admin Release Funds Action */}
@@ -132,35 +260,56 @@ console.log(data)
                                 <div className="space-y-2">
                                     <div className="flex items-center gap-2 text-blue-100">
                                         <CheckCircle2 className="w-5 h-5" />
-                                        <span className="text-[11px]  uppercase tracking-widest">Total Amount to Release</span>
+                                        <span className="text-[11px] uppercase tracking-widest">Total Amount to Release</span>
                                     </div>
-                                    <div className="text-5xl  tracking-tight drop-shadow-sm">
+                                    <div className="text-5xl font-bold tracking-tight drop-shadow-sm">
                                         <span className="text-2xl text-blue-200 font-medium mr-1">$</span>
-                                        {driverInformation?.amount}
+
+                                        {summary?.unpaidAmount?.toFixed(2) || "0.00"}
                                     </div>
                                 </div>
 
                                 <div className="space-y-3">
+
+
+
                                     <button
-                                        disabled={driverInformation?.amount === 0}
-                                        onClick={() => alert(`Admin Action: Funds Released $${driverInformation?.amount}`)}
-                                        className={`group w-full py-5 rounded-2xl  text-sm uppercase tracking-widest flex items-center justify-center gap-3 transition-all duration-300 ${driverInformation?.amount > 0
-                                            ? 'bg-white text-blue-600 hover:bg-slate-900 hover:text-white shadow-xl active:scale-95'
-                                            : 'bg-blue-500/50 text-blue-200 cursor-not-allowed border border-blue-400/30'
+                                        // loading অথবা unpaidAmount না থাকলে বাটনটি ডিজেবল হয়ে থাকবে
+                                        disabled={loading || !summary?.unpaidAmount || summary?.unpaidAmount === 0}
+                                        onClick={() => handletransferAmount()}
+                                        className={`group relative w-full py-5 rounded-2xl text-xs sm:text-sm font-black uppercase tracking-[0.15em] flex items-center justify-center gap-3 overflow-hidden transition-all duration-300 ${summary?.unpaidAmount > 0 && !loading
+                                                ? 'bg-slate-950 text-white shadow-[0_0_30px_rgba(255,255,255,0.15)] hover:shadow-blue-500/30 border border-white/20 hover:border-blue-400 active:scale-[0.97]'
+                                                : 'bg-blue-950/40 text-blue-300/40 cursor-not-allowed border border-blue-900/30'
                                             }`}
                                     >
-                                        {driverInformation?.amount > 0 ? (
-                                            <>
-                                                <span>Approve & Release Funds</span>
-                                                <Navigation className="w-4 h-4 rotate-90" />
-                                            </>
-                                        ) : (
-                                            'Review Required'
+                                        {summary?.unpaidAmount > 0 && !loading && (
+                                            <span className="absolute inset-0 bg-linear-to-r from-blue-600 to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-0" />
                                         )}
-                                    </button>
 
-                                    {driverInformation?.amount > 0 && (
-                                        <p className="text-[9px] text-center text-blue-100 font-bold uppercase tracking-widest opacity-80">
+                                        <span className="relative z-10 flex items-center justify-center gap-3 w-full">
+                                            {loading ? (
+                                  
+                                                <div className="flex items-center gap-2.5">
+                                                    <svg className="animate-spin h-4 w-4 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                    </svg>
+                                                    <span className="text-slate-300 tracking-widest text-[11px]">Processing Payout...</span>
+                                                </div>
+                                            ) : summary?.unpaidAmount > 0 ? (
+                                       
+                                                <>
+                                                    <span>Approve & Release Funds</span>
+                                                    <Navigation className="w-4 h-4 rotate-90 transition-transform duration-300 group-hover:translate-x-1.5 group-hover:-translate-y-0.5" />
+                                                </>
+                                            ) : (
+                                                /* ৩. ডিফল্ট লকড স্টেট */
+                                                'Review Required / No Pending Funds'
+                                            )}
+                                        </span>
+                                    </button>
+                                    {summary?.unpaidAmount > 0 && (
+                                        <p className="text-[12px] text-center text-blue-100 font-bold  opacity-80">
                                             Instant transfer via Stripe Connect
                                         </p>
                                     )}
@@ -194,11 +343,11 @@ console.log(data)
                             <div
                                 key={trip._id}
 
-                                className={`p-5 space-y-4 transition-all ${trip.paymentStatus?.toLowerCase() === 'paid' ? 'bg-gray-50/50' : ''} ${selectedTripIds.includes(trip.id) ? 'bg-blue-50/60' : ''}`}
+                                className={`p-5 space-y-4 transition-all ${trip.paymentStatus?.toLowerCase() === 'paid' ? 'bg-gray-50/50' : ''}`}
                             >
                                 <div className="flex justify-between items-start">
                                     <div className="flex items-center gap-3">
-                                        
+
                                         <div>
                                             <p className=" text-sm text-gray-800">{trip.rider?.fullName}</p>
 
@@ -250,7 +399,8 @@ console.log(data)
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="text-gray-400 text-[13px]  uppercase tracking-widest border-b border-gray-50 bg-gray-50/50">
-                        
+
+                                    <th className='p-6'>Select</th>
                                     <th className="p-6">Rider</th>
                                     <th className="p-6">Route</th>
                                     <th className="p-6">Date</th>
@@ -267,9 +417,40 @@ console.log(data)
                                     <tr
                                         key={trip._id}
 
-                                        className={`hover:bg-blue-50/20 cursor-pointer transition-colors ${selectedTripIds.includes(trip.id) ? 'bg-blue-50/50' : ''}`}
+                                        className={`hover:bg-blue-50/20 cursor-pointer transition-colors `}
                                     >
-                                     
+                                        <td className="p-6 align-middle">
+                                            <div className="flex items-center justify-center">
+                                                {trip?.paymentStatus === 'PAID' ? (
+
+                                                    <div className="w-5 h-5 rounded-md border-2 border-slate-200 bg-slate-100 flex items-center justify-center cursor-not-allowed" title="Already Paid">
+
+                                                        <div className="w-2 h-2 rounded-full bg-slate-300" />
+                                                    </div>
+                                                ) : (
+
+                                                    <label className="relative flex items-center justify-center cursor-pointer group">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={Selected.includes(trip._id)}
+                                                            onChange={() => handleSelectTrip(trip._id)}
+                                                            className="sr-only peer"
+                                                        />
+
+                                                        <div className="w-5 h-5 rounded-md border-2 border-slate-300 bg-white 
+                peer-checked:border-emerald-500
+                transition-all duration-200 ease-in-out
+                flex items-center justify-center
+                group-hover:border-emerald-400 group-hover:scale-105"
+                                                        >
+
+                                                            <div className="w-2 h-2 rounded-full bg-emerald-500 scale-0 peer-checked:scale-100 transition-transform duration-200 ease-in-out" />
+                                                        </div>
+                                                    </label>
+                                                )}
+                                            </div>
+                                        </td>
+
                                         <td className="p-6">
                                             <p className=" text-gray-800 text-[14px]">{trip?.rider?.fullName}</p>
                                             <p className="text-[10px]  text-gray-400 uppercase">{trip.id}</p>
@@ -309,11 +490,11 @@ console.log(data)
                                             )}
                                         </td>
 
-                                   
-                                    
-<td className="p-6 text-gray-900">
-  {trip?.transactionStatusLabel}
-</td>
+
+
+                                        <td className="p-6 text-gray-900">
+                                            {trip?.transactionStatusLabel}
+                                        </td>
                                         <td className="p-6 text-center  text-gray-900">${trip?.billing?.driverPayout}</td>
                                         <td className="p-6 text-right  text-gray-900">${trip?.billing?.grossAmount}</td>
                                     </tr>

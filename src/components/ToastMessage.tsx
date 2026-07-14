@@ -29,7 +29,7 @@ export const ToastMessage = (type: ToastType, message: string) => {
       style: {
         ...commonStyle,
         background: "rgba(239, 68, 68, 0.12)",
-        color: "#FFFFFF",
+        color: "#000000",
         border: "1px solid rgba(239, 68, 68, 0.3)",
       },
     });
